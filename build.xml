@@ -1,0 +1,52 @@
+<project name="Pentaho VFS Browser" default="dist">
+
+	<description>Pentaho VFS Browserl</description>
+	<property file="build.properties" />
+
+	<path id="classpath">
+		<pathelement path="bin" />
+		<fileset dir="lib">
+			<include name="*.jar" />
+			<include name="*.zip" />
+		</fileset>
+	</path>
+
+	<target name="init">
+		<!-- make build directory -->
+		<mkdir dir="bin" />
+	</target>
+
+	<target name="clean">
+		<!-- remove build directory -->
+		<delete dir="bin" />
+	</target>
+
+	<target name="clean-dist">
+		<delete dir="dist"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<!-- Compile all java classes -->
+		<javac 
+			destdir="bin" 
+			debug="false" 
+			optimize="true" 
+			deprecation="true"
+	    	fork="true">
+			<classpath>
+				<path refid="classpath" />
+				<pathelement location="lib/swt-win32/swt.jar" />
+			</classpath>
+			<src path="source" />
+		</javac>
+	</target>
+	
+	<target name="dist" depends="compile" description="Creates a ZIP distribution of the Report Wizard.">		
+		<mkdir dir="dist" />
+		<zip destfile="dist/pentaho-vfs-browser.jar" basedir="bin" >
+			<zipfileset dir="icons" prefix="icons"/>
+		</zip>
+		
+	</target>
+
+</project>
