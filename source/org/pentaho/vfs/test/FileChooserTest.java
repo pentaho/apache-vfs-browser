@@ -51,7 +51,7 @@ public class FileChooserTest {
     MenuItem fileOpenItem = new MenuItem(fileSubMenu, SWT.CASCADE);
     fileOpenItem.setText("Open..");
     fileOpenItem.setAccelerator(SWT.CTRL + 'O');
-    final String filters[] = new String[] { "*.*", ".xml;.XML" } ;
+    final String filters[] = new String[] { "*.*", "*.xml;*.XML" } ;
     final String filterNames[] = new String[] { "All Files", "XML Files" } ;
     fileOpenItem.addSelectionListener(new SelectionListener() {
       public void widgetDefaultSelected(SelectionEvent arg0) {

@@ -44,7 +44,7 @@
 	<target name="dist" depends="compile" description="Creates a ZIP distribution of the Report Wizard.">		
 		<mkdir dir="dist" />
 		<zip destfile="dist/pentaho-vfs-browser.jar" basedir="bin" >
-			<zipfileset dir="icons" prefix="icons"/>
+			<zipfileset dir="resources/icons" prefix="icons"/>
 		</zip>
 		
 	</target>

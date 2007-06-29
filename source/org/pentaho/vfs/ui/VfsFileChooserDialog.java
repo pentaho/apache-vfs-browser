@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
@@ -46,12 +47,13 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   Combo parentFoldersCombo = null;
 
   Combo fileFilterCombo = null;
-  
+
   int fileDialogMode = VFS_DIALOG_OPEN;
 
   String[] fileFilters;
+
   String[] fileFilterNames;
-  
+
   VfsBrowser vfsBrowser = null;
 
   public VfsFileChooserDialog(FileObject rootFile) {
@@ -129,14 +131,22 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
       fileNameText.setLayoutData(gridData);
     }
+    Composite filterPanel = new Composite(dialog, SWT.NONE);
+    gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+    filterPanel.setLayoutData(gridData);
+    filterPanel.setLayout(new GridLayout(3, false));
+    // create filter label
+    Label filterLabel = new Label(filterPanel, SWT.NONE);
+    filterLabel.setText("Filter: ");
+    gridData = new GridData(SWT.FILL, SWT.CENTER, false, false);
+    filterLabel.setLayoutData(gridData);
     // create file filter combo
-    fileFilterCombo = new Combo(dialog, SWT.READ_ONLY);
+    fileFilterCombo = new Combo(filterPanel, SWT.READ_ONLY);
     gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
     fileFilterCombo.setLayoutData(gridData);
     fileFilterCombo.setItems(fileFilterNames);
     fileFilterCombo.addSelectionListener(this);
     fileFilterCombo.select(0);
-    
     // create our ok/cancel buttons
     Composite buttonPanel = new Composite(dialog, SWT.NONE);
     gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -224,9 +234,14 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         System.out.println(vfsBrowser.deleteSelectedItem());
       }
     } else if (se.widget == fileFilterCombo) {
-      String filter = fileFilters[fileFilterCombo.getSelectionIndex()];
-      vfsBrowser.setFilter(filter);
-      vfsBrowser.applyFilter();
+      Runnable r = new Runnable() {
+        public void run() {
+          String filter = fileFilters[fileFilterCombo.getSelectionIndex()];
+          vfsBrowser.setFilter(filter);
+          vfsBrowser.applyFilter();
+        }
+      };
+      BusyIndicator.showWhile(fileFilterCombo.getDisplay(), r);
     } else {
       okPressed = false;
       dialog.dispose();

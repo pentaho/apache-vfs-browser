@@ -6,11 +6,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
@@ -48,8 +50,11 @@ public class VfsBrowser extends Composite {
   boolean showFoldersOnly = false;
 
   String fileFilter = null;
-  
-  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter, boolean showFoldersOnly) {
+
+  HashMap fileObjectChildrenMap = new HashMap();
+
+  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter,
+      boolean showFoldersOnly) {
     super(parent, style);
     this.showFoldersOnly = showFoldersOnly;
     setFilter(fileFilter);
@@ -162,7 +167,8 @@ public class VfsBrowser extends Composite {
       TreeItem newFolderTreeItem = new TreeItem(fileSystemTree.getSelection()[0], SWT.NONE);
       newFolderTreeItem.setData(newFolder);
       newFolderTreeItem.setData("isLoaded", Boolean.TRUE);
-      newFolderTreeItem.setImage(new Image(newFolderTreeItem.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
+      newFolderTreeItem.setImage(new Image(newFolderTreeItem.getDisplay(), getClass().getResourceAsStream(
+          "/icons/folder.gif")));
       populateTreeItemText(newFolderTreeItem, newFolder);
       fileSystemTree.setSelection(newFolderTreeItem);
       return true;
@@ -171,11 +177,11 @@ public class VfsBrowser extends Composite {
     }
     return false;
   }
-  
+
   public boolean deleteSelectedItem() {
     return deleteItem(fileSystemTree.getSelection()[0]);
-  }  
-  
+  }
+
   public boolean deleteItem(TreeItem ti) {
     FileObject file = (FileObject) ti.getData();
     try {
@@ -246,19 +252,55 @@ public class VfsBrowser extends Composite {
 
   public void setFilter(String filter) {
     if (filter != null) {
-      if (filter.equals("*.*") || filter.equals("*")) {
-        filter = "";
+      if (!filter.startsWith("*")) {
+        filter = "*" + filter;
       }
+      // we need to turn the filter into a proper regex
+      // for example *.txt would be .*\.txt
+      // and *.* would be .*\..*
+      filter = filter.replaceAll("\\.", "\\.").replaceAll("\\*", ".*");
     }
-    this.fileFilter = filter;    
+    this.fileFilter = filter;
   }
-  
+
   public void applyFilter() {
     // need to apply filter to entire tree (deletes nodes)
+    FileObject selectedFileObject = (FileObject) fileSystemTree.getSelection()[0].getData();
     fileSystemTree.removeAll();
     populateFileSystemTree(rootFileObject, fileSystemTree, null);
+    selectTreeItemByFileObject(selectedFileObject, true);
   }
-  
+
+  public void selectTreeItemByFileObject(FileObject selectedFileObject, boolean expandSelection) {
+    // note that this method WILL cause the tree to load files from VFS
+    // go through selectedFileObject's parent elements until we hit the root
+    List selectedFileObjectParentList = new ArrayList();
+    selectedFileObjectParentList.add(selectedFileObject);
+    try {
+      FileObject parent = selectedFileObject.getParent();
+      while (parent != null) {
+        selectedFileObjectParentList.add(parent);
+        parent = parent.getParent();
+      }
+      TreeItem treeItem = fileSystemTree.getSelection()[0];
+      treeItem.setExpanded(true);
+      for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
+        FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
+        treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
+        if (treeItem != null) {
+          if (treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) {
+            treeItem.removeAll();
+            populateFileSystemTree(obj, fileSystemTree, treeItem);
+          }
+          treeItem.setExpanded(expandSelection);
+          fileSystemTree.setSelection(treeItem);
+        }
+      }
+    } catch (FileSystemException e) {
+      e.printStackTrace();
+    }
+  }
+
   public void populateTreeItemText(TreeItem ti, FileObject fileObject) {
     try {
       String contentType = fileObject.getContent().getContentInfo().getContentType();
@@ -269,7 +311,7 @@ public class VfsBrowser extends Composite {
       }
       ti.setText(new String[] { fileObject.getName().getBaseName(), contentType, df.format(date) });
     } catch (Throwable t) {
-//      t.printStackTrace();
+      // t.printStackTrace();
       ti.setText(fileObject.getName().getBaseName());
     }
   }
@@ -287,66 +329,82 @@ public class VfsBrowser extends Composite {
     return false;
   }
 
-  public void populateFileSystemTree(FileObject inputFile, Tree tree, TreeItem item) {
-    FileObject[] children = null;
-    try {
-      children = inputFile.getChildren();
-    } catch (FileSystemException e) {
-      // e.printStackTrace();
-    }
+  public void populateFileSystemTree(final FileObject inputFile, final Tree tree, TreeItem item) {
     if (item == null) {
       item = new TreeItem(tree, SWT.NONE);
       item.setText(inputFile.getName().toString());
       item.setData(inputFile);
+      item.setExpanded(true);
+      tree.setSelection(item);
     } else {
       item.setData(inputFile);
     }
-    item.setData("isLoaded", Boolean.TRUE);
-    if (children != null) {
-      item.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
-    } else if (showFoldersOnly) {
-      item.removeAll();
-      item.dispose();
-      return;
-    }
-    for (int i = 0; children != null && i < children.length; i++) {
-      FileObject fileObj = children[i];
-      TreeItem childTreeItem = new TreeItem(item, SWT.NONE);
-      populateTreeItemText(childTreeItem, fileObj);
-      childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/file.png")));
-      childTreeItem.setData(fileObj);
-      childTreeItem.setData("isLoaded", Boolean.FALSE);
-      try {
-        if (fileObj.getChildren() != null) {
-          childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
-          TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
-          populateTreeItemText(tmpItem, fileObj);
-        } else if (showFoldersOnly) {
-          childTreeItem.removeAll();
-          childTreeItem.dispose();
+    final TreeItem myItem = item;
+    Runnable r = new Runnable() {
+      public void run() {
+        FileObject[] children = null;
+        try {
+          children = (FileObject[]) fileObjectChildrenMap.get(inputFile.getName().getFriendlyURI());
+          if (children == null) {
+            children = inputFile.getChildren();
+            fileObjectChildrenMap.put(inputFile.getName().getFriendlyURI(), children);
+          }
+        } catch (FileSystemException e) {
+          // e.printStackTrace();
         }
-      } catch (FileSystemException e) {
-        if (showFoldersOnly) {
-          childTreeItem.removeAll();
-          childTreeItem.dispose();
-        } else {
-          // well we know we found a real file, let's apply the filters
-          if (!isAcceptedByFilter(childTreeItem)) {
-            childTreeItem.removeAll();
-            childTreeItem.dispose();
+        myItem.setData("isLoaded", Boolean.TRUE);
+        if (children != null) {
+          myItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
+        } else if (showFoldersOnly) {
+          myItem.removeAll();
+          myItem.dispose();
+          return;
+        }
+        for (int i = 0; children != null && i < children.length; i++) {
+          FileObject fileObj = children[i];
+          TreeItem childTreeItem = new TreeItem(myItem, SWT.NONE);
+          populateTreeItemText(childTreeItem, fileObj);
+          childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/file.png")));
+          childTreeItem.setData(fileObj);
+          childTreeItem.setData("isLoaded", Boolean.FALSE);
+          try {
+            FileObject[] myChildren = (FileObject[]) fileObjectChildrenMap.get(fileObj.getName().getFriendlyURI());
+            if (myChildren == null) {
+              myChildren = fileObj.getChildren();
+              fileObjectChildrenMap.put(fileObj.getName().getFriendlyURI(), myChildren);
+            }
+            if (myChildren != null) {
+              childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
+              TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
+              populateTreeItemText(tmpItem, fileObj);
+            } else if (showFoldersOnly) {
+              childTreeItem.removeAll();
+              childTreeItem.dispose();
+            }
+          } catch (FileSystemException e) {
+            if (showFoldersOnly) {
+              childTreeItem.removeAll();
+              childTreeItem.dispose();
+            } else {
+              // well we know we found a real file, let's apply the filters
+              if (!isAcceptedByFilter(childTreeItem)) {
+                childTreeItem.removeAll();
+                childTreeItem.dispose();
+              }
+            }
           }
         }
       }
-    }
+    };
+    BusyIndicator.showWhile(tree.getDisplay(), r);
   }
 
   public boolean isAcceptedByFilter(TreeItem treeItem) {
-    System.out.println("filter = " + fileFilter);
     if (fileFilter != null && !"".equals(fileFilter)) {
       StringTokenizer st = new StringTokenizer(fileFilter, ";");
       while (st.hasMoreTokens()) {
         String token = st.nextToken();
-        if (((FileObject)treeItem.getData()).getName().getFriendlyURI().endsWith(token)) {
+        if (((FileObject) treeItem.getData()).getName().getFriendlyURI().matches(token)) {
           return true;
         }
       }
@@ -354,9 +412,11 @@ public class VfsBrowser extends Composite {
     }
     return true;
   }
-  
+
   public TreeItem findTreeItemByName(TreeItem treeItem, String itemName) {
-    if (treeItem.getData() != null && ((FileObject) treeItem.getData()).getName().getFriendlyURI().equals(itemName)) {
+    if (treeItem.getData() != null
+        && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem
+            .getData()).getName().getFriendlyURI().equals(itemName))) {
       return treeItem;
     }
     TreeItem children[] = treeItem.getItems();
@@ -387,7 +447,7 @@ public class VfsBrowser extends Composite {
           parent = parent.getParentItem();
         }
         foundItem.setExpanded(expandSelectedItem);
-        setSelectedFileObject((FileObject)foundItem.getData());
+        setSelectedFileObject((FileObject) foundItem.getData());
         fileSystemTree.setSelection(foundItem);
         return;
       }
@@ -423,5 +483,4 @@ public class VfsBrowser extends Composite {
       listener.fireFileObjectSelected(getSelectedFileObject());
     }
   }
-
 }
