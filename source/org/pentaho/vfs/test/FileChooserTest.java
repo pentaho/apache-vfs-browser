@@ -3,6 +3,7 @@ package org.pentaho.vfs.test;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
 import org.apache.commons.vfs.VFS;
 import org.apache.commons.vfs.impl.DefaultFileSystemManager;
@@ -31,8 +32,10 @@ public class FileChooserTest {
       }
       // rootFile = fsManager.resolveFile("jar:lib/jdom.jar2");
       // rootFile = fsManager.resolveFile("file:/home/mdamour/workspace/apache-vfs-browser");
-      maybeRootFile = fsManager.resolveFile("file:/");
-      //maybeRootFile = fsManager.resolveFile("jar:lib/mail.jar");
+//      maybeRootFile = fsManager.resolveFile("file:/");
+      // maybeRootFile = fsManager.resolveFile("jar:lib/mail.jar");
+    maybeRootFile = fsManager.resolveFile("ftp://ftpgolden.pentaho.org/");
+
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -51,15 +54,22 @@ public class FileChooserTest {
     MenuItem fileOpenItem = new MenuItem(fileSubMenu, SWT.CASCADE);
     fileOpenItem.setText("Open..");
     fileOpenItem.setAccelerator(SWT.CTRL + 'O');
-    final String filters[] = new String[] { "*.*", "*.xml;*.XML" } ;
-    final String filterNames[] = new String[] { "All Files", "XML Files" } ;
+    final String filters[] = new String[] { "*.*", "*.xml;*.XML" };
+    final String filterNames[] = new String[] { "All Files", "XML Files" };
     fileOpenItem.addSelectionListener(new SelectionListener() {
       public void widgetDefaultSelected(SelectionEvent arg0) {
       }
 
       public void widgetSelected(SelectionEvent arg0) {
-        VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(rootFile);
-        FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN);
+        FileObject initialFile = null;
+        try {
+          initialFile = rootFile.resolveFile("/home/mdamour");
+        } catch (FileSystemException e) {
+          e.printStackTrace();
+        }
+        VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(rootFile, initialFile);
+        FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames,
+            VfsFileChooserDialog.VFS_DIALOG_OPEN);
         if (selectedFile != null) {
           System.out.println("selectedFile = " + selectedFile.getName());
         } else {
@@ -75,8 +85,15 @@ public class FileChooserTest {
       }
 
       public void widgetSelected(SelectionEvent arg0) {
-        VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(rootFile);
-        FileObject selectedFile = fileOpenDialog.open(applicationShell, "Untitled", filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_SAVEAS);
+        FileObject initialFile = null;
+        try {
+          initialFile = rootFile.resolveFile("/home/mdamour");
+        } catch (FileSystemException e) {
+          e.printStackTrace();
+        }
+        VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(rootFile, initialFile);
+        FileObject selectedFile = fileOpenDialog.open(applicationShell, "Untitled", filters, filterNames,
+            VfsFileChooserDialog.VFS_DIALOG_SAVEAS);
         if (selectedFile != null) {
           System.out.println("selectedFile = " + selectedFile.getName());
         } else {

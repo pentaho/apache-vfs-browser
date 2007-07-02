@@ -137,7 +137,7 @@ public class VfsBrowser extends Composite {
           ti.removeAll();
           populateFileSystemTree(selectedFileObject, fileSystemTree, ti);
         }
-        ti.setExpanded(!ti.getExpanded());
+        ti.setExpanded(true);
         fireFileObjectSelected();
       }
     });
@@ -274,6 +274,9 @@ public class VfsBrowser extends Composite {
   public void selectTreeItemByFileObject(FileObject selectedFileObject, boolean expandSelection) {
     // note that this method WILL cause the tree to load files from VFS
     // go through selectedFileObject's parent elements until we hit the root
+    if (selectedFileObject == null) {
+      return;
+    }
     List selectedFileObjectParentList = new ArrayList();
     selectedFileObjectParentList.add(selectedFileObject);
     try {
@@ -284,16 +287,20 @@ public class VfsBrowser extends Composite {
       }
       TreeItem treeItem = fileSystemTree.getSelection()[0];
       treeItem.setExpanded(true);
+      fileSystemTree.setSelection(treeItem);
+      setSelectedFileObject(selectedFileObject);
       for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
         FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
         treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
         if (treeItem != null) {
-          if (treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) {
+          if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) {
             treeItem.removeAll();
             populateFileSystemTree(obj, fileSystemTree, treeItem);
           }
           treeItem.setExpanded(expandSelection);
           fileSystemTree.setSelection(treeItem);
+          setSelectedFileObject(obj);
+          fireFileObjectSelected();
         }
       }
     } catch (FileSystemException e) {
@@ -414,9 +421,9 @@ public class VfsBrowser extends Composite {
   }
 
   public TreeItem findTreeItemByName(TreeItem treeItem, String itemName) {
-    if (treeItem.getData() != null
+    if (treeItem == null || (treeItem.getData() != null
         && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem
-            .getData()).getName().getFriendlyURI().equals(itemName))) {
+            .getData()).getName().getFriendlyURI().equals(itemName)))) {
       return treeItem;
     }
     TreeItem children[] = treeItem.getItems();
