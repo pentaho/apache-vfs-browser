@@ -100,6 +100,7 @@ public class VfsBrowser extends Composite {
         deleteItem(fileSystemTree.getSelection()[0]);
       }
     });
+    /*
     MenuItem renameFileItem = new MenuItem(popupMenu, SWT.PUSH);
     renameFileItem.setText("Rename File");
     renameFileItem.addSelectionListener(new SelectionListener() {
@@ -110,6 +111,7 @@ public class VfsBrowser extends Composite {
         renameItem(fileSystemTree.getSelection()[0], "renamedfile");
       }
     });
+    */
     fileSystemTree.addMouseListener(new MouseListener() {
       public void mouseDoubleClick(MouseEvent e) {
         selectedFileObject = (FileObject) fileSystemTree.getSelection()[0].getData();
