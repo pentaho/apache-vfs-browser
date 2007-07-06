@@ -2,6 +2,8 @@ package org.pentaho.vfs.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.vfs.Capability;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
@@ -11,6 +13,7 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -42,6 +45,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   Button cancelButton = null;
 
+  Button changeRootButton = null;
+
   Button folderUpButton = null;
 
   Button deleteFileButton = null;
@@ -65,8 +70,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     this.initialFile = initialFile;
   }
 
-  public FileObject open(Shell applicationShell, String fileName, String[] fileFilters, String[] fileFilterNames,
-      int fileDialogMode) {
+  public FileObject open(Shell applicationShell, String fileName, String[] fileFilters, String[] fileFilterNames, int fileDialogMode) {
     this.fileDialogMode = fileDialogMode;
     this.fileFilters = fileFilters;
     this.fileFilterNames = fileFilterNames;
@@ -75,6 +79,15 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       dialog.setText("Open File");
     } else {
       dialog.setText("Save As");
+      if (rootFile != null) {
+        if (!rootFile.getFileSystem().hasCapability(Capability.WRITE_CONTENT)) {
+          MessageBox messageDialog = new MessageBox(applicationShell, SWT.OK);
+          messageDialog.setText("Error");
+          messageDialog.setMessage("This filesystem does not support write operations.");
+          messageDialog.open();
+          return null;
+        }
+      }
     }
     dialog.setLayout(new GridLayout());
     // create our file chooser tool bar, contains parent folder combo and various controls
@@ -89,21 +102,29 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     }
     // create our ok/cancel buttons
     createButtonPanel(dialog);
-    
-    
+
     // set the initial file selection
-    vfsBrowser.selectTreeItemByFileObject(initialFile, true);
-    
-    
-    
+    try {
+      vfsBrowser.selectTreeItemByFileObject(initialFile, true);
+    } catch (FileSystemException e) {
+      MessageBox box = new MessageBox(applicationShell);
+      box.setText("Error");
+      box.setMessage(e.getMessage());
+      box.open();
+    }
+
     // set the size and show the dialog
     int height = 400;
     int width = 600;
     dialog.setSize(width, height);
-    int x = (dialog.getDisplay().getBounds().width - width) / 2;
-    int y = (dialog.getDisplay().getBounds().height - height) / 2;
+    Rectangle bounds = dialog.getDisplay().getPrimaryMonitor().getClientArea();
+    int x = (bounds.width - width) / 2;
+    int y = (bounds.height - height) / 2;
     dialog.setLocation(x, y);
     dialog.open();
+
+    vfsBrowser.forceFocus();
+
     while (!dialog.isDisposed()) {
       if (!dialog.getDisplay().readAndDispatch())
         dialog.getDisplay().sleep();
@@ -191,7 +212,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
           okPressed();
         }
       }
-      
+
     });
   }
 
@@ -200,10 +221,9 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     if (fileFilters != null && fileFilters.length > 0) {
       defaultFilter = fileFilters[0];
     }
-    vfsBrowser = new VfsBrowser(dialog, SWT.NONE, rootFile, defaultFilter, fileDialogMode == VFS_DIALOG_SAVEAS ? true
-        : false);
+    vfsBrowser = new VfsBrowser(dialog, SWT.NONE, rootFile, defaultFilter, fileDialogMode == VFS_DIALOG_SAVEAS ? true : false, false);
     parentFoldersCombo.addSelectionListener(this);
-    //vfsBrowser.selectTreeItemByName(rootFile.getName().getFriendlyURI(), true);
+    // vfsBrowser.selectTreeItemByName(rootFile.getName().getFriendlyURI(), true);
     updateParentFileCombo(rootFile);
     vfsBrowser.addVfsBrowserListener(this);
     GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -212,9 +232,17 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public void createToolbarPanel(Shell dialog) {
     Composite chooserToolbarPanel = new Composite(dialog, SWT.NONE);
-    chooserToolbarPanel.setLayout(new GridLayout(5, false));
+    chooserToolbarPanel.setLayout(new GridLayout(6, false));
     GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
     chooserToolbarPanel.setLayoutData(gridData);
+
+    changeRootButton = new Button(chooserToolbarPanel, SWT.PUSH);
+    changeRootButton.setToolTipText("Change VFS Root");
+    changeRootButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream("/icons/network.gif")));
+    gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
+    changeRootButton.setLayoutData(gridData);
+    changeRootButton.addSelectionListener(this);
+
     Label parentFoldersLabel = new Label(chooserToolbarPanel, SWT.NONE);
     parentFoldersLabel.setText("Save in Folder:");
     gridData = new GridData(SWT.FILL, SWT.CENTER, false, false);
@@ -223,20 +251,20 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
     parentFoldersCombo.setLayoutData(gridData);
     folderUpButton = new Button(chooserToolbarPanel, SWT.PUSH);
-    folderUpButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream(
-        "/icons/folderup.jpg")));
+    folderUpButton.setToolTipText("Up One Level");
+    folderUpButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream("/icons/folderup.jpg")));
     gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
     folderUpButton.setLayoutData(gridData);
     folderUpButton.addSelectionListener(this);
     deleteFileButton = new Button(chooserToolbarPanel, SWT.PUSH);
-    deleteFileButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream(
-        "/icons/delete.jpg")));
+    deleteFileButton.setToolTipText("Delete File");
+    deleteFileButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream("/icons/delete.jpg")));
     gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
     deleteFileButton.setLayoutData(gridData);
     deleteFileButton.addSelectionListener(this);
     newFolderButton = new Button(chooserToolbarPanel, SWT.PUSH);
-    newFolderButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream(
-        "/icons/newfolder.jpg")));
+    newFolderButton.setToolTipText("Create New Folder");
+    newFolderButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream("/icons/newfolder.jpg")));
     gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
     newFolderButton.setLayoutData(gridData);
     newFolderButton.addSelectionListener(this);
@@ -251,7 +279,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       messageDialog.open();
       return;
     }
-    
+
     if (fileDialogMode == VFS_DIALOG_SAVEAS) {
       try {
         FileObject toBeSavedFile = vfsBrowser.getSelectedFileObject().resolveFile(fileNameText.getText());
@@ -266,15 +294,15 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         }
       } catch (FileSystemException e) {
         e.printStackTrace();
-      }      
+      }
     }
     if (fileDialogMode == VFS_DIALOG_SAVEAS) {
       enteredFileName = fileNameText.getText();
     }
     okPressed = true;
-    dialog.dispose();    
+    dialog.dispose();
   }
-  
+
   public void widgetDefaultSelected(SelectionEvent se) {
   }
 
@@ -291,27 +319,79 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         parentFoldersCombo.select(parentFoldersCombo.getSelectionIndex() - 1);
       }
     } else if (se.widget == newFolderButton) {
-      vfsBrowser.createFolder("New Folder");
+      try {
+        vfsBrowser.createFolder("New Folder");
+      } catch (FileSystemException e) {
+        MessageBox mb = new MessageBox(newFolderButton.getShell());
+        mb.setText("Error");
+        mb.setMessage(e.getMessage());
+        mb.open();
+      }
     } else if (se.widget == deleteFileButton) {
       MessageBox messageDialog = new MessageBox(se.widget.getDisplay().getActiveShell(), SWT.YES | SWT.NO);
       messageDialog.setText("Confirm");
       messageDialog.setMessage("Delete file " + vfsBrowser.getSelectedFileObject().getName().getFriendlyURI());
       int status = messageDialog.open();
       if (status == SWT.YES) {
-        System.out.println(vfsBrowser.deleteSelectedItem());
+        try {
+          System.out.println(vfsBrowser.deleteSelectedItem());
+        } catch (FileSystemException e) {
+          e.printStackTrace();
+          MessageBox errorDialog = new MessageBox(se.widget.getDisplay().getActiveShell(), SWT.OK);
+          errorDialog.setText("Error");
+          errorDialog.setMessage(e.getMessage());
+          errorDialog.open();
+        }
       }
+    } else if (se.widget == changeRootButton) {
+      promptForNewVfsRoot();
     } else if (se.widget == fileFilterCombo) {
+
       Runnable r = new Runnable() {
         public void run() {
           String filter = fileFilters[fileFilterCombo.getSelectionIndex()];
           vfsBrowser.setFilter(filter);
-          vfsBrowser.applyFilter();
+          try {
+            vfsBrowser.applyFilter();
+          } catch (FileSystemException e) {
+            MessageBox mb = new MessageBox(newFolderButton.getShell(), SWT.OK);
+            mb.setText("Error:  Could not apply filter");
+            mb.setMessage(e.getMessage());
+            mb.open();
+          }
         }
       };
       BusyIndicator.showWhile(fileFilterCombo.getDisplay(), r);
     } else {
       okPressed = false;
       dialog.dispose();
+    }
+  }
+
+  public void promptForNewVfsRoot() {
+    boolean done = false;
+    String defaultText = vfsBrowser.rootFileObject.getName().getFriendlyURI();
+    String text = defaultText;
+    while (!done) {
+      if (text == null) {
+        text = defaultText;
+      }
+      TextInputDialog textDialog = new TextInputDialog("Enter New VFS Root URL", text, 800, 100);
+      text = textDialog.open();
+      if (text != null && !"".equals(text)) {
+        try {
+          vfsBrowser.resetVfsRoot(rootFile.getFileSystem().getFileSystemManager().resolveFile(text));
+          updateParentFileCombo(vfsBrowser.rootFileObject);
+          done = true;
+        } catch (FileSystemException e) {
+          MessageBox errorDialog = new MessageBox(vfsBrowser.getDisplay().getActiveShell(), SWT.OK);
+          errorDialog.setText("Error");
+          errorDialog.setMessage(e.getMessage());
+          errorDialog.open();
+        }
+      } else {
+        done = true;
+      }
     }
   }
 

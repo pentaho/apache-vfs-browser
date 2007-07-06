@@ -34,7 +34,7 @@ public class VfsBrowserTest {
     }
     Shell s = new Shell();
     s.setLayout(new FillLayout());
-    VfsBrowser browser = new VfsBrowser(s, SWT.MIN | SWT.MAX | SWT.CLOSE | SWT.RESIZE, rootFile, null, false);
+    VfsBrowser browser = new VfsBrowser(s, SWT.MIN | SWT.MAX | SWT.CLOSE | SWT.RESIZE, rootFile, null, false, false);
     s.setVisible(true);
     while (!s.isDisposed()) {
       try {

@@ -30,11 +30,15 @@ public class FileChooserTest {
           e.printStackTrace();
         }
       }
-      // rootFile = fsManager.resolveFile("jar:lib/jdom.jar2");
+      maybeRootFile = fsManager.resolveFile("jar:lib/mail.jar");
       // rootFile = fsManager.resolveFile("file:/home/mdamour/workspace/apache-vfs-browser");
-//      maybeRootFile = fsManager.resolveFile("file:/");
+      // maybeRootFile = fsManager.resolveFile("file:///c:/");
       // maybeRootFile = fsManager.resolveFile("jar:lib/mail.jar");
-    maybeRootFile = fsManager.resolveFile("ftp://ftpgolden.pentaho.org/");
+      // maybeRootFile = fsManager.resolveFile("ftp://ftpgolden.pentaho.org/");
+
+      // maybeRootFile.getFileSystem().getParentLayer().
+
+      // maybeRootFile.getFileSystem().getFileSystemManager().gets
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -62,14 +66,13 @@ public class FileChooserTest {
 
       public void widgetSelected(SelectionEvent arg0) {
         FileObject initialFile = null;
-        try {
-          initialFile = rootFile.resolveFile("/home/mdamour");
-        } catch (FileSystemException e) {
-          e.printStackTrace();
-        }
+//        try {
+////          initialFile = rootFile.resolveFile("/home/mdamour");
+//        } catch (FileSystemException e) {
+//          e.printStackTrace();
+//        }
         VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(rootFile, initialFile);
-        FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames,
-            VfsFileChooserDialog.VFS_DIALOG_OPEN);
+        FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN);
         if (selectedFile != null) {
           System.out.println("selectedFile = " + selectedFile.getName());
         } else {
@@ -92,8 +95,7 @@ public class FileChooserTest {
           e.printStackTrace();
         }
         VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(rootFile, initialFile);
-        FileObject selectedFile = fileOpenDialog.open(applicationShell, "Untitled", filters, filterNames,
-            VfsFileChooserDialog.VFS_DIALOG_SAVEAS);
+        FileObject selectedFile = fileOpenDialog.open(applicationShell, "Untitled", filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_SAVEAS);
         if (selectedFile != null) {
           System.out.println("selectedFile = " + selectedFile.getName());
         } else {

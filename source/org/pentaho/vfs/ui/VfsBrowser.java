@@ -9,8 +9,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
+
+import org.apache.commons.vfs.Capability;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.dnd.DND;
@@ -23,6 +26,8 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -34,6 +39,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
@@ -49,28 +55,45 @@ public class VfsBrowser extends Composite {
 
   boolean showFoldersOnly = false;
 
+  boolean allowDoubleClickOpenFolder = false;
+
   String fileFilter = null;
 
   HashMap fileObjectChildrenMap = new HashMap();
 
-  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter,
-      boolean showFoldersOnly) {
+  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter, final boolean showFoldersOnly,
+      final boolean allowDoubleClickOpenFolder) {
     super(parent, style);
     this.showFoldersOnly = showFoldersOnly;
+    this.allowDoubleClickOpenFolder = allowDoubleClickOpenFolder;
     setFilter(fileFilter);
+    
     setLayout(new FillLayout());
     this.rootFileObject = rootFileObject;
     fileSystemTree = new Tree(this, SWT.BORDER | SWT.SINGLE);
     fileSystemTree.setHeaderVisible(true);
-    TreeColumn column1 = new TreeColumn(fileSystemTree, SWT.LEFT);
+
+    final TreeColumn column1 = new TreeColumn(fileSystemTree, SWT.LEFT | SWT.RESIZE);
     column1.setText("Name");
     column1.setWidth(260);
-    TreeColumn column2 = new TreeColumn(fileSystemTree, SWT.LEFT);
+    final TreeColumn column2 = new TreeColumn(fileSystemTree, SWT.LEFT);
     column2.setText("Type");
     column2.setWidth(120);
-    TreeColumn column3 = new TreeColumn(fileSystemTree, SWT.LEFT);
+    final TreeColumn column3 = new TreeColumn(fileSystemTree, SWT.LEFT);
     column3.setText("Modified");
     column3.setWidth(120);
+
+    parent.getShell().addControlListener(new ControlListener() {
+      public void controlMoved(ControlEvent arg0) {
+      }
+
+      public void controlResized(ControlEvent arg0) {
+        int treeWidth = fileSystemTree.getBounds().width;
+        int remainderWidth = treeWidth - (column1.getWidth() + column2.getWidth() + column3.getWidth());
+        column1.setWidth(column1.getWidth() + remainderWidth - 10);
+      }
+    });
+
     Transfer[] types = new Transfer[] { TextTransfer.getInstance(), FileTransfer.getInstance() };
     // Create the drag source on the tree
     DragSource ds = new DragSource(fileSystemTree, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
@@ -85,7 +108,14 @@ public class VfsBrowser extends Composite {
     dt.setTransfer(types);
     dt.addDropListener(new DropTargetAdapter() {
       public void drop(DropTargetEvent event) {
-        moveItem(fileSystemTree.getSelection()[0], (TreeItem) event.item);
+        try {
+          moveItem(fileSystemTree.getSelection()[0], (TreeItem) event.item);
+        } catch (FileSystemException e) {
+          MessageBox mb = new MessageBox(parent.getShell());
+          mb.setText("Error");
+          mb.setMessage(e.getMessage());
+          mb.open();
+        }
       }
     });
     populateFileSystemTree(rootFileObject, fileSystemTree, null);
@@ -97,10 +127,18 @@ public class VfsBrowser extends Composite {
       }
 
       public void widgetSelected(SelectionEvent arg0) {
-        deleteItem(fileSystemTree.getSelection()[0]);
+        try {
+          deleteItem(fileSystemTree.getSelection()[0]);
+        } catch (FileSystemException e) {
+          e.printStackTrace();
+          MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.YES | SWT.NO);
+          errorDialog.setText("Error");
+          errorDialog.setMessage(e.getMessage());
+          errorDialog.open();
+        }
       }
     });
-    /*
+
     MenuItem renameFileItem = new MenuItem(popupMenu, SWT.PUSH);
     renameFileItem.setText("Rename File");
     renameFileItem.addSelectionListener(new SelectionListener() {
@@ -108,24 +146,38 @@ public class VfsBrowser extends Composite {
       }
 
       public void widgetSelected(SelectionEvent arg0) {
-        renameItem(fileSystemTree.getSelection()[0], "renamedfile");
+        promptForRenameFile();
       }
     });
-    */
+
     fileSystemTree.addMouseListener(new MouseListener() {
       public void mouseDoubleClick(MouseEvent e) {
-        selectedFileObject = (FileObject) fileSystemTree.getSelection()[0].getData();
-        fireFileObjectDoubleClicked();
+        TreeItem ti = fileSystemTree.getSelection()[0];
+        selectedFileObject = (FileObject) ti.getData();
+        try {
+          if (allowDoubleClickOpenFolder || selectedFileObject.getType().equals(FileType.FILE)) {
+            fireFileObjectDoubleClicked();
+          } else {
+            ti.setExpanded(!ti.getExpanded());
+            fireFileObjectSelected();
+          }
+        } catch (FileSystemException ex) {
+          // this simply means that we don't know if the selected file was a file or a folder, likely, we don't have permission
+          MessageBox mb = new MessageBox(parent.getShell());
+          mb.setText("Error:  Cannot select object");
+          mb.setMessage(ex.getMessage());
+          mb.open();
+        }
       }
 
       public void mouseDown(MouseEvent arg0) {
         if (arg0.button == 3) {
           popupMenu.setVisible(true);
+        } else {
         }
       }
 
       public void mouseUp(MouseEvent arg0) {
-        // TODO Auto-generated method stub
       }
     });
     fileSystemTree.addSelectionListener(new SelectionListener() {
@@ -133,14 +185,17 @@ public class VfsBrowser extends Composite {
       }
 
       public void widgetSelected(SelectionEvent e) {
+        // TreeItem ti = fileSystemTree.getSelection()[0];
         TreeItem ti = (TreeItem) e.item;
         selectedFileObject = (FileObject) (ti.getData());
         if (ti.getData("isLoaded") == null || !((Boolean) ti.getData("isLoaded")).booleanValue()) {
           ti.removeAll();
           populateFileSystemTree(selectedFileObject, fileSystemTree, ti);
         }
-        ti.setExpanded(true);
-        fireFileObjectSelected();
+        // if (!ti.getExpanded()) {
+        // ti.setExpanded(true);
+        // fireFileObjectSelected();
+        // }
       }
     });
     fileSystemTree.addTreeListener(new TreeListener() {
@@ -158,98 +213,106 @@ public class VfsBrowser extends Composite {
         ti.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
       }
     });
-    fileSystemTree.setSelection(fileSystemTree.getItem(0));
-    fileSystemTree.getItem(0).setExpanded(true);
-  }
-
-  public boolean createFolder(String folderName) {
-    try {
-      FileObject newFolder = getSelectedFileObject().resolveFile(folderName);
-      newFolder.createFolder();
-      TreeItem newFolderTreeItem = new TreeItem(fileSystemTree.getSelection()[0], SWT.NONE);
-      newFolderTreeItem.setData(newFolder);
-      newFolderTreeItem.setData("isLoaded", Boolean.TRUE);
-      newFolderTreeItem.setImage(new Image(newFolderTreeItem.getDisplay(), getClass().getResourceAsStream(
-          "/icons/folder.gif")));
-      populateTreeItemText(newFolderTreeItem, newFolder);
-      fileSystemTree.setSelection(newFolderTreeItem);
-      return true;
-    } catch (Exception e) {
-      e.printStackTrace();
+    if (fileSystemTree.getItemCount() > 0) {
+      fileSystemTree.setSelection(fileSystemTree.getItem(0));
+      fileSystemTree.getItem(0).setExpanded(true);
     }
-    return false;
   }
 
-  public boolean deleteSelectedItem() {
+  public void promptForRenameFile() {
+    boolean done = false;
+    String defaultText = fileSystemTree.getSelection()[0].getText();
+    String text = defaultText;
+    while (!done) {
+      if (text == null) {
+        text = defaultText;
+      }
+      TextInputDialog textDialog = new TextInputDialog("Enter new filename", text, 800, 100);
+      text = textDialog.open();
+      if (text != null && !"".equals(text)) {
+        try {
+          renameItem(fileSystemTree.getSelection()[0], text);
+          done = true;
+        } catch (FileSystemException e) {
+          MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.OK);
+          errorDialog.setText("Error");
+          errorDialog.setMessage(e.getMessage());
+          errorDialog.open();
+        }
+      } else {
+        done = true;
+      }
+    }
+  }
+
+  public boolean createFolder(String folderName) throws FileSystemException {
+    FileObject newFolder = getSelectedFileObject().resolveFile(folderName);
+    newFolder.createFolder();
+    TreeItem newFolderTreeItem = new TreeItem(fileSystemTree.getSelection()[0], SWT.NONE);
+    newFolderTreeItem.setData(newFolder);
+    newFolderTreeItem.setData("isLoaded", Boolean.TRUE);
+    newFolderTreeItem.setImage(new Image(newFolderTreeItem.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
+    populateTreeItemText(newFolderTreeItem, newFolder);
+    fileSystemTree.setSelection(newFolderTreeItem);
+    return true;
+  }
+
+  public boolean deleteSelectedItem() throws FileSystemException {
     return deleteItem(fileSystemTree.getSelection()[0]);
   }
 
-  public boolean deleteItem(TreeItem ti) {
+  public boolean deleteItem(TreeItem ti) throws FileSystemException {
     FileObject file = (FileObject) ti.getData();
-    try {
-      if (file.delete()) {
-        ti.dispose();
-        return true;
-      }
-    } catch (FileSystemException e) {
-      e.printStackTrace();
-    }
-    return false;
-  }
-
-  public boolean renameItem(TreeItem ti, String newName) {
-    FileObject file = (FileObject) ti.getData();
-    try {
-      FileObject newFileObject = file.getParent().resolveFile(newName);
-      if (!newFileObject.exists()) {
-        newFileObject.createFile();
-      } else {
-        return false;
-      }
-      file.moveTo(newFileObject);
-      ti.setText(newName);
+    if (file.delete()) {
+      ti.dispose();
       return true;
-    } catch (FileSystemException e) {
-      e.printStackTrace();
     }
     return false;
   }
 
-  public boolean moveItem(TreeItem source, TreeItem destination) {
+  public boolean renameItem(TreeItem ti, String newName) throws FileSystemException {
+    FileObject file = (FileObject) ti.getData();
+    FileObject newFileObject = file.getParent().resolveFile(newName);
+    if (!newFileObject.exists()) {
+      newFileObject.createFile();
+    } else {
+      return false;
+    }
+    file.moveTo(newFileObject);
+    ti.setText(newName);
+    return true;
+  }
+
+  public boolean moveItem(TreeItem source, TreeItem destination) throws FileSystemException {
+    FileObject file = (FileObject) source.getData();
+    FileObject destFile = (FileObject) destination.getData();
+    if (!file.exists() && !destFile.exists()) {
+      return false;
+    }
     try {
-      FileObject file = (FileObject) source.getData();
-      FileObject destFile = (FileObject) destination.getData();
-      if (!file.exists() && !destFile.exists()) {
-        return false;
-      }
-      try {
-        if (destFile.getChildren() != null) {
-          destFile = destFile.resolveFile(source.getText());
-          if (!destFile.exists()) {
-            destFile.createFile();
-          }
-        }
-      } catch (Exception e) {
-        destFile = destFile.getParent().resolveFile(source.getText());
-        destination = destination.getParentItem();
+      if (destFile.getChildren() != null) {
+        destFile = destFile.resolveFile(source.getText());
         if (!destFile.exists()) {
           destFile.createFile();
         }
       }
-      if (!file.getParent().equals(destFile.getParent())) {
-        file.moveTo(destFile);
-        TreeItem destTreeItem = new TreeItem(destination, SWT.NONE);
-        destTreeItem.setImage(new Image(source.getDisplay(), getClass().getResourceAsStream("/icons/file.png")));
-        destTreeItem.setData(destFile);
-        destTreeItem.setData("isLoaded", Boolean.FALSE);
-        populateTreeItemText(destTreeItem, destFile);
-        source.dispose();
+    } catch (Exception e) {
+      destFile = destFile.getParent().resolveFile(source.getText());
+      destination = destination.getParentItem();
+      if (!destFile.exists()) {
+        destFile.createFile();
       }
-      return true;
-    } catch (FileSystemException e) {
-      e.printStackTrace();
     }
-    return false;
+    if (!file.getParent().equals(destFile.getParent())) {
+      file.moveTo(destFile);
+      TreeItem destTreeItem = new TreeItem(destination, SWT.NONE);
+      destTreeItem.setImage(new Image(source.getDisplay(), getClass().getResourceAsStream("/icons/file.png")));
+      destTreeItem.setData(destFile);
+      destTreeItem.setData("isLoaded", Boolean.FALSE);
+      populateTreeItemText(destTreeItem, destFile);
+      source.dispose();
+    }
+    return true;
   }
 
   public void setFilter(String filter) {
@@ -265,7 +328,7 @@ public class VfsBrowser extends Composite {
     this.fileFilter = filter;
   }
 
-  public void applyFilter() {
+  public void applyFilter() throws FileSystemException {
     // need to apply filter to entire tree (deletes nodes)
     FileObject selectedFileObject = (FileObject) fileSystemTree.getSelection()[0].getData();
     fileSystemTree.removeAll();
@@ -273,7 +336,7 @@ public class VfsBrowser extends Composite {
     selectTreeItemByFileObject(selectedFileObject, true);
   }
 
-  public void selectTreeItemByFileObject(FileObject selectedFileObject, boolean expandSelection) {
+  public void selectTreeItemByFileObject(FileObject selectedFileObject, boolean expandSelection) throws FileSystemException {
     // note that this method WILL cause the tree to load files from VFS
     // go through selectedFileObject's parent elements until we hit the root
     if (selectedFileObject == null) {
@@ -281,32 +344,28 @@ public class VfsBrowser extends Composite {
     }
     List selectedFileObjectParentList = new ArrayList();
     selectedFileObjectParentList.add(selectedFileObject);
-    try {
-      FileObject parent = selectedFileObject.getParent();
-      while (parent != null) {
-        selectedFileObjectParentList.add(parent);
-        parent = parent.getParent();
-      }
-      TreeItem treeItem = fileSystemTree.getSelection()[0];
-      treeItem.setExpanded(true);
-      fileSystemTree.setSelection(treeItem);
-      setSelectedFileObject(selectedFileObject);
-      for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
-        FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
-        treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
-        if (treeItem != null) {
-          if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) {
-            treeItem.removeAll();
-            populateFileSystemTree(obj, fileSystemTree, treeItem);
-          }
-          treeItem.setExpanded(expandSelection);
-          fileSystemTree.setSelection(treeItem);
-          setSelectedFileObject(obj);
-          fireFileObjectSelected();
+    FileObject parent = selectedFileObject.getParent();
+    while (parent != null && !parent.equals(rootFileObject)) {
+      selectedFileObjectParentList.add(parent);
+      parent = parent.getParent();
+    }
+    TreeItem treeItem = fileSystemTree.getSelection()[0];
+    treeItem.setExpanded(true);
+    fileSystemTree.setSelection(treeItem);
+    setSelectedFileObject(selectedFileObject);
+    for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
+      FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
+      treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
+      if (treeItem != null) {
+        if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) {
+          treeItem.removeAll();
+          populateFileSystemTree(obj, fileSystemTree, treeItem);
         }
+        treeItem.setExpanded(expandSelection);
+        fileSystemTree.setSelection(treeItem);
+        setSelectedFileObject(obj);
+        fireFileObjectSelected();
       }
-    } catch (FileSystemException e) {
-      e.printStackTrace();
     }
   }
 
@@ -338,7 +397,16 @@ public class VfsBrowser extends Composite {
     return false;
   }
 
+  public void resetVfsRoot(final FileObject newRoot) {
+    rootFileObject = newRoot;
+    fileSystemTree.removeAll();
+    populateFileSystemTree(newRoot, fileSystemTree, null);
+  }
+
   public void populateFileSystemTree(final FileObject inputFile, final Tree tree, TreeItem item) {
+    if (inputFile == null) {
+      return;
+    }
     if (item == null) {
       item = new TreeItem(tree, SWT.NONE);
       item.setText(inputFile.getName().toString());
@@ -354,12 +422,12 @@ public class VfsBrowser extends Composite {
         FileObject[] children = null;
         try {
           children = (FileObject[]) fileObjectChildrenMap.get(inputFile.getName().getFriendlyURI());
-          if (children == null) {
+          if (children == null && inputFile.getType().hasChildren()) {
             children = inputFile.getChildren();
             fileObjectChildrenMap.put(inputFile.getName().getFriendlyURI(), children);
           }
         } catch (FileSystemException e) {
-          // e.printStackTrace();
+          e.printStackTrace();
         }
         myItem.setData("isLoaded", Boolean.TRUE);
         if (children != null) {
@@ -378,7 +446,7 @@ public class VfsBrowser extends Composite {
           childTreeItem.setData("isLoaded", Boolean.FALSE);
           try {
             FileObject[] myChildren = (FileObject[]) fileObjectChildrenMap.get(fileObj.getName().getFriendlyURI());
-            if (myChildren == null) {
+            if (myChildren == null && fileObj.getType().hasChildren()) {
               myChildren = fileObj.getChildren();
               fileObjectChildrenMap.put(fileObj.getName().getFriendlyURI(), myChildren);
             }
@@ -391,6 +459,7 @@ public class VfsBrowser extends Composite {
               childTreeItem.dispose();
             }
           } catch (FileSystemException e) {
+            e.printStackTrace();
             if (showFoldersOnly) {
               childTreeItem.removeAll();
               childTreeItem.dispose();
@@ -423,9 +492,9 @@ public class VfsBrowser extends Composite {
   }
 
   public TreeItem findTreeItemByName(TreeItem treeItem, String itemName) {
-    if (treeItem == null || (treeItem.getData() != null
-        && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem
-            .getData()).getName().getFriendlyURI().equals(itemName)))) {
+    if (treeItem == null
+        || (treeItem.getData() != null && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem.getData())
+            .getName().getFriendlyURI().equals(itemName)))) {
       return treeItem;
     }
     TreeItem children[] = treeItem.getItems();
