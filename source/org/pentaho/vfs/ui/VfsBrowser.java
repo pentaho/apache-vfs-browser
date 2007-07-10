@@ -89,8 +89,10 @@ public class VfsBrowser extends Composite {
 
       public void controlResized(ControlEvent arg0) {
         int treeWidth = fileSystemTree.getBounds().width;
-        int remainderWidth = treeWidth - (column1.getWidth() + column2.getWidth() + column3.getWidth());
-        column1.setWidth(column1.getWidth() + remainderWidth - 10);
+        if (treeWidth > column1.getWidth()) {
+          int remainderWidth = treeWidth - (column1.getWidth() + column2.getWidth() + column3.getWidth());
+          column1.setWidth(column1.getWidth() + remainderWidth - 10);
+        }
       }
     });
 
@@ -227,7 +229,7 @@ public class VfsBrowser extends Composite {
       if (text == null) {
         text = defaultText;
       }
-      TextInputDialog textDialog = new TextInputDialog("Enter new filename", text, 800, 100);
+      TextInputDialog textDialog = new TextInputDialog("Enter new filename", text, 500, 100);
       text = textDialog.open();
       if (text != null && !"".equals(text)) {
         try {
@@ -280,6 +282,7 @@ public class VfsBrowser extends Composite {
     }
     file.moveTo(newFileObject);
     ti.setText(newName);
+    ti.setData(newFileObject);
     return true;
   }
 
@@ -356,15 +359,17 @@ public class VfsBrowser extends Composite {
     for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
       FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
       treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
-      if (treeItem != null) {
+      if (treeItem != null && !treeItem.isDisposed()) {
         if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) {
           treeItem.removeAll();
           populateFileSystemTree(obj, fileSystemTree, treeItem);
         }
-        treeItem.setExpanded(expandSelection);
-        fileSystemTree.setSelection(treeItem);
-        setSelectedFileObject(obj);
-        fireFileObjectSelected();
+        if (!treeItem.isDisposed()) {
+          treeItem.setExpanded(expandSelection);
+          fileSystemTree.setSelection(treeItem);
+          setSelectedFileObject(obj);
+          fireFileObjectSelected();
+        }
       }
     }
   }

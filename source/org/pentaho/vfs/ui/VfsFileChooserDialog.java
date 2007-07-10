@@ -123,7 +123,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       }
     }
 
-    vfsBrowser.forceFocus();
+    vfsBrowser.fileSystemTree.forceFocus();
     while (!dialog.isDisposed()) {
       if (!dialog.getDisplay().readAndDispatch())
         dialog.getDisplay().sleep();
@@ -334,7 +334,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       int status = messageDialog.open();
       if (status == SWT.YES) {
         try {
-          System.out.println(vfsBrowser.deleteSelectedItem());
+          vfsBrowser.deleteSelectedItem();
         } catch (FileSystemException e) {
           e.printStackTrace();
           MessageBox errorDialog = new MessageBox(se.widget.getDisplay().getActiveShell(), SWT.OK);
