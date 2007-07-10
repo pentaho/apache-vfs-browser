@@ -67,7 +67,7 @@ public class VfsBrowser extends Composite {
     this.showFoldersOnly = showFoldersOnly;
     this.allowDoubleClickOpenFolder = allowDoubleClickOpenFolder;
     setFilter(fileFilter);
-    
+
     setLayout(new FillLayout());
     this.rootFileObject = rootFileObject;
     fileSystemTree = new Tree(this, SWT.BORDER | SWT.SINGLE);
@@ -444,33 +444,45 @@ public class VfsBrowser extends Composite {
           childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/file.png")));
           childTreeItem.setData(fileObj);
           childTreeItem.setData("isLoaded", Boolean.FALSE);
+          // try {
+          FileObject[] myChildren = (FileObject[]) fileObjectChildrenMap.get(fileObj.getName().getFriendlyURI());
           try {
-            FileObject[] myChildren = (FileObject[]) fileObjectChildrenMap.get(fileObj.getName().getFriendlyURI());
             if (myChildren == null && fileObj.getType().hasChildren()) {
               myChildren = fileObj.getChildren();
               fileObjectChildrenMap.put(fileObj.getName().getFriendlyURI(), myChildren);
-            }
-            if (myChildren != null) {
+              if (myChildren != null) {
+                childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
+                TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
+                populateTreeItemText(tmpItem, fileObj);
+              } else if (showFoldersOnly) {
+                childTreeItem.removeAll();
+                childTreeItem.dispose();
+              }
+            } else if (fileObj.getType().equals(FileType.FOLDER)) {
               childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
               TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
               populateTreeItemText(tmpItem, fileObj);
-            } else if (showFoldersOnly) {
+            } else if (!fileObj.getType().equals(FileType.FOLDER) && !isAcceptedByFilter(childTreeItem)) {
               childTreeItem.removeAll();
               childTreeItem.dispose();
             }
           } catch (FileSystemException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
-            if (showFoldersOnly) {
-              childTreeItem.removeAll();
-              childTreeItem.dispose();
-            } else {
-              // well we know we found a real file, let's apply the filters
-              if (!isAcceptedByFilter(childTreeItem)) {
-                childTreeItem.removeAll();
-                childTreeItem.dispose();
-              }
-            }
           }
+          // } catch (FileSystemException e) {
+          // e.printStackTrace();
+          // if (showFoldersOnly) {
+          // childTreeItem.removeAll();
+          // childTreeItem.dispose();
+          // } else {
+          // // well we know we found a real file, let's apply the filters
+          // if (!isAcceptedByFilter(childTreeItem)) {
+          // childTreeItem.removeAll();
+          // childTreeItem.dispose();
+          // }
+          // }
+          // }
         }
       }
     };

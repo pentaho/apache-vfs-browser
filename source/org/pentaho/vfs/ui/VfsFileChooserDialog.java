@@ -79,15 +79,6 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       dialog.setText("Open File");
     } else {
       dialog.setText("Save As");
-      if (rootFile != null) {
-        if (!rootFile.getFileSystem().hasCapability(Capability.WRITE_CONTENT)) {
-          MessageBox messageDialog = new MessageBox(applicationShell, SWT.OK);
-          messageDialog.setText("Error");
-          messageDialog.setMessage("This filesystem does not support write operations.");
-          messageDialog.open();
-          return null;
-        }
-      }
     }
     dialog.setLayout(new GridLayout());
     // create our file chooser tool bar, contains parent folder combo and various controls
@@ -123,12 +114,21 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     dialog.setLocation(x, y);
     dialog.open();
 
-    vfsBrowser.forceFocus();
+    if (rootFile != null && fileDialogMode == VFS_DIALOG_SAVEAS) {
+      if (!rootFile.getFileSystem().hasCapability(Capability.WRITE_CONTENT)) {
+        MessageBox messageDialog = new MessageBox(applicationShell, SWT.OK);
+        messageDialog.setText("Warning");
+        messageDialog.setMessage("This filesystem does not support write operations.");
+        messageDialog.open();
+      }
+    }
 
+    vfsBrowser.forceFocus();
     while (!dialog.isDisposed()) {
       if (!dialog.getDisplay().readAndDispatch())
         dialog.getDisplay().sleep();
     }
+
     // we just woke up, we are probably disposed already..
     if (!dialog.isDisposed()) {
       dialog.dispose();
@@ -376,7 +376,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       if (text == null) {
         text = defaultText;
       }
-      TextInputDialog textDialog = new TextInputDialog("Enter New VFS Root URL", text, 800, 100);
+      TextInputDialog textDialog = new TextInputDialog("Enter New VFS Root URL", text, 650, 100);
       text = textDialog.open();
       if (text != null && !"".equals(text)) {
         try {
