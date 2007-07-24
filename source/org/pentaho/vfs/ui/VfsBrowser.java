@@ -61,8 +61,7 @@ public class VfsBrowser extends Composite {
 
   HashMap fileObjectChildrenMap = new HashMap();
 
-  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter, final boolean showFoldersOnly,
-      final boolean allowDoubleClickOpenFolder) {
+  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter, final boolean showFoldersOnly, final boolean allowDoubleClickOpenFolder) {
     super(parent, style);
     this.showFoldersOnly = showFoldersOnly;
     this.allowDoubleClickOpenFolder = allowDoubleClickOpenFolder;
@@ -449,17 +448,12 @@ public class VfsBrowser extends Composite {
           childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/file.png")));
           childTreeItem.setData(fileObj);
           childTreeItem.setData("isLoaded", Boolean.FALSE);
-          // try {
-          FileObject[] myChildren = (FileObject[]) fileObjectChildrenMap.get(fileObj.getName().getFriendlyURI());
           try {
-            if (myChildren == null && fileObj.getType().hasChildren()) {
-              myChildren = fileObj.getChildren();
-              fileObjectChildrenMap.put(fileObj.getName().getFriendlyURI(), myChildren);
-              if (myChildren != null) {
-                childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
-                TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
-                populateTreeItemText(tmpItem, fileObj);
-              } else if (showFoldersOnly) {
+            if (fileObj.getType().hasChildren()) {
+              childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif")));
+              TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
+              populateTreeItemText(tmpItem, fileObj);
+              if (showFoldersOnly) {
                 childTreeItem.removeAll();
                 childTreeItem.dispose();
               }
@@ -475,19 +469,6 @@ public class VfsBrowser extends Composite {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
-          // } catch (FileSystemException e) {
-          // e.printStackTrace();
-          // if (showFoldersOnly) {
-          // childTreeItem.removeAll();
-          // childTreeItem.dispose();
-          // } else {
-          // // well we know we found a real file, let's apply the filters
-          // if (!isAcceptedByFilter(childTreeItem)) {
-          // childTreeItem.removeAll();
-          // childTreeItem.dispose();
-          // }
-          // }
-          // }
         }
       }
     };
@@ -509,9 +490,7 @@ public class VfsBrowser extends Composite {
   }
 
   public TreeItem findTreeItemByName(TreeItem treeItem, String itemName) {
-    if (treeItem == null
-        || (treeItem.getData() != null && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem.getData())
-            .getName().getFriendlyURI().equals(itemName)))) {
+    if (treeItem == null || (treeItem.getData() != null && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem.getData()).getName().getFriendlyURI().equals(itemName)))) {
       return treeItem;
     }
     TreeItem children[] = treeItem.getItems();
