@@ -1,5 +1,7 @@
 package org.pentaho.vfs.ui;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -376,7 +378,16 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       if (text == null) {
         text = defaultText;
       }
-      TextInputDialog textDialog = new TextInputDialog("Enter New VFS Root URL", text, 650, 100);
+      File fileRoots[] = File.listRoots();
+      String roots[] = new String[fileRoots.length];
+      for (int i=0;i<roots.length;i++) {
+          try {
+            roots[i] = fileRoots[i].toURI().toURL().toExternalForm();
+          } catch (MalformedURLException e) {
+            e.printStackTrace();
+          }
+      }
+      ComboBoxInputDialog textDialog = new ComboBoxInputDialog("Enter New VFS Root URL", text, roots, 650, 100);
       text = textDialog.open();
       if (text != null && !"".equals(text)) {
         try {
