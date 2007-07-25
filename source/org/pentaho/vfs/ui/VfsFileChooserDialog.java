@@ -246,7 +246,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     changeRootButton.addSelectionListener(this);
 
     Label parentFoldersLabel = new Label(chooserToolbarPanel, SWT.NONE);
-    parentFoldersLabel.setText("Save in Folder:");
+    if (fileDialogMode == VFS_DIALOG_OPEN) {
+      parentFoldersLabel.setText("Open from Folder:");
+    } else {
+      parentFoldersLabel.setText("Save in Folder:");
+    }
     gridData = new GridData(SWT.FILL, SWT.CENTER, false, false);
     parentFoldersLabel.setLayoutData(gridData);
     parentFoldersCombo = new Combo(chooserToolbarPanel, SWT.BORDER | SWT.READ_ONLY);
