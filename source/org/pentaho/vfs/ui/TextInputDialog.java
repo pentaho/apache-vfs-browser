@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.vfs.messages.Messages;
 
 public class TextInputDialog {
   String title;
@@ -81,11 +82,11 @@ public class TextInputDialog {
     final Button ok = new Button(dialog, SWT.PUSH);
     gridData = new GridData(SWT.RIGHT, SWT.FILL, false, false);
     ok.setLayoutData(gridData);
-    ok.setText("Ok");
+    ok.setText(Messages.getString("TextInputDialog.ok")); //$NON-NLS-1$
     Button cancel = new Button(dialog, SWT.PUSH);
     gridData = new GridData(SWT.RIGHT, SWT.FILL, false, false);
     cancel.setLayoutData(gridData);
-    cancel.setText("Cancel");
+    cancel.setText(Messages.getString("TextInputDialog.cancel")); //$NON-NLS-1$
     SelectionListener listener = new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
         if (e.getSource() == ok) {

@@ -22,17 +22,12 @@
 	</target>
 
 	<target name="clean-dist">
-		<delete dir="dist"/>
+		<delete dir="dist" />
 	</target>
 
 	<target name="compile" depends="init">
 		<!-- Compile all java classes -->
-		<javac 
-			destdir="bin" 
-			debug="false" 
-			optimize="true" 
-			deprecation="true"
-	    	fork="true">
+		<javac destdir="bin" debug="false" optimize="true" deprecation="true" fork="true">
 			<classpath>
 				<path refid="classpath" />
 				<pathelement location="lib/swt-win32/swt.jar" />
@@ -40,13 +35,14 @@
 			<src path="source" />
 		</javac>
 	</target>
-	
-	<target name="dist" depends="compile" description="Creates a ZIP distribution of the Report Wizard.">		
+
+	<target name="dist" depends="compile" description="Creates a ZIP distribution of the Report Wizard.">
 		<mkdir dir="dist" />
-		<zip destfile="dist/pentaho-vfs-browser.jar" basedir="bin" >
-			<zipfileset dir="resources/icons" prefix="icons"/>
+		<zip destfile="dist/pentaho-vfs-browser.jar" basedir="bin" excludes="**/*.properties">
+			<zipfileset dir="resources/icons" prefix="icons" />
 		</zip>
-		
+		<zip destfile="dist/pentaho-vfs-browser-i18n.jar" basedir="bin" includes="**/*.properties" />
+
 	</target>
 
 </project>

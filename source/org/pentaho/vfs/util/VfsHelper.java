@@ -2,10 +2,12 @@ package org.pentaho.vfs.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemManager;
+import org.pentaho.vfs.messages.Messages;
 
 
 public class VfsHelper {
@@ -22,12 +24,12 @@ public class VfsHelper {
     if (fsManager != null) {
       FileObject savedFile = fsManager.resolveFile(uri);
       if (!savedFile.exists()) {
-        throw new FileSystemException("File does not exist.");
+        throw new FileSystemException(Messages.getString("VfsHelper.fileDoesNotExist")); //$NON-NLS-1$
       }
       IOUtils.copy(is, savedFile.getContent().getOutputStream());
       return savedFile;
     }
-    throw new FileSystemException("Operation failed.");
+    throw new FileSystemException(Messages.getString("VfsHelper.operationFailed")); //$NON-NLS-1$
   }
   
   public FileObject saveFileAs(String uri, InputStream is) throws FileSystemException, IOException {
@@ -39,32 +41,32 @@ public class VfsHelper {
       IOUtils.copy(is, savedFile.getContent().getOutputStream());
       return savedFile;
     }
-    throw new FileSystemException("Operation failed.");    
+    throw new FileSystemException(Messages.getString("VfsHelper.operationFailed"));     //$NON-NLS-1$
   }
   
   public FileObject getFileObject(String uri) throws FileSystemException {
     if (fsManager != null) {
       FileObject file = fsManager.resolveFile(uri);
       if (!file.exists()) {
-        throw new FileSystemException("File does not exist.");
+        throw new FileSystemException(Messages.getString("VfsHelper.fileDoesNotExist")); //$NON-NLS-1$
       }
       return file;
     }
-    throw new FileSystemException("Operation failed.");    
+    throw new FileSystemException(Messages.getString("VfsHelper.operationFailed"));     //$NON-NLS-1$
   }
   
   public byte[] getFileContentAsByteArray(FileObject fileObject) throws IOException {
     if (fileObject != null && fileObject.exists()) {
       IOUtils.toByteArray(fileObject.getContent().getInputStream());
     }
-    throw new FileSystemException("Operation failed.");    
+    throw new FileSystemException(Messages.getString("VfsHelper.operationFailed"));     //$NON-NLS-1$
   }
   
   public byte[] getFileContentAsByteArray(String uri) throws IOException {
     if (fsManager != null) {
       return getFileContentAsByteArray(fsManager.resolveFile(uri));
     }
-    throw new FileSystemException("Operation failed.");
+    throw new FileSystemException(Messages.getString("VfsHelper.operationFailed")); //$NON-NLS-1$
   }
   
   public FileSystemManager getFsManager() {

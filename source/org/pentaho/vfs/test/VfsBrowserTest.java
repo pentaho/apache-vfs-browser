@@ -19,7 +19,7 @@ public class VfsBrowserTest {
     try {
       fsManager = VFS.getManager();
       if (fsManager instanceof DefaultFileSystemManager) {
-        File f = new File(".");
+        File f = new File("."); //$NON-NLS-1$
         try {
           ((DefaultFileSystemManager) fsManager).setBaseFile(f.getCanonicalFile());
         } catch (IOException e) {
@@ -28,7 +28,7 @@ public class VfsBrowserTest {
       }
       // rootFile = fsManager.resolveFile("jar:lib/jdom.jar2");
       // rootFile = fsManager.resolveFile("file:/home/mdamour/workspace/apache-vfs-browser");
-      rootFile = fsManager.resolveFile("file:/");
+      rootFile = fsManager.resolveFile("file:/"); //$NON-NLS-1$
     } catch (Exception e) {
       e.printStackTrace();
     }

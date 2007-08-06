@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.vfs.messages.Messages;
 
 public class ComboBoxInputDialog {
   String title;
@@ -84,11 +85,11 @@ public class ComboBoxInputDialog {
     final Button ok = new Button(dialog, SWT.PUSH);
     gridData = new GridData(SWT.RIGHT, SWT.FILL, false, false);
     ok.setLayoutData(gridData);
-    ok.setText("Ok");
+    ok.setText(Messages.getString("ComboBoxInputDialog.ok")); //$NON-NLS-1$
     Button cancel = new Button(dialog, SWT.PUSH);
     gridData = new GridData(SWT.RIGHT, SWT.FILL, false, false);
     cancel.setLayoutData(gridData);
-    cancel.setText("Cancel");
+    cancel.setText(Messages.getString("ComboBoxInputDialog.cancel")); //$NON-NLS-1$
     SelectionListener listener = new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
         if (e.getSource() == ok) {
