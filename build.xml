@@ -36,13 +36,12 @@
 		</javac>
 	</target>
 
-	<target name="dist" depends="compile" description="Creates a ZIP distribution of the Report Wizard.">
+	<target name="dist" depends="compile" description="Creates a ZIP distribution of the apache-vfs-browser.">
 		<mkdir dir="dist" />
 		<zip destfile="dist/pentaho-vfs-browser.jar" basedir="bin" excludes="**/*.properties">
 			<zipfileset dir="resources/icons" prefix="icons" />
 		</zip>
 		<zip destfile="dist/pentaho-vfs-browser-i18n.jar" basedir="bin" includes="**/*.properties" />
-
 	</target>
 
 </project>
