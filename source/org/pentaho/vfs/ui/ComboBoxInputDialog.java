@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 Pentaho Corporation.  All rights reserved. 
+ * Copyright 2007 Pentaho Corporation.  All rights reserved. 
  * This software was developed by Pentaho Corporation and is provided under the terms 
  * of the Mozilla Public License, Version 1.1, or any later version. You may not use 
  * this file except in compliance with the license. If you need a copy of the license, 
@@ -10,9 +10,9 @@
  * basis, WITHOUT WARRANTY OF ANY KIND, either express or  implied. Please refer to 
  * the license for the specific language governing your rights and limitations.
  *
- * @created Jul 24, 2007
  * @author Michael D'Amour
  */
+
 package org.pentaho.vfs.ui;
 
 import org.eclipse.swt.SWT;

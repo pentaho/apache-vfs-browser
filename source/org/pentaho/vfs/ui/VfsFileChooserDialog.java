@@ -1,3 +1,17 @@
+/*
+ * Copyright 2007 Pentaho Corporation.  All rights reserved. 
+ * This software was developed by Pentaho Corporation and is provided under the terms 
+ * of the Mozilla Public License, Version 1.1, or any later version. You may not use 
+ * this file except in compliance with the license. If you need a copy of the license, 
+ * please go to http://www.mozilla.org/MPL/MPL-1.1.txt. The Original Code is the Pentaho 
+ * BI Platform.  The Initial Developer is Pentaho Corporation.
+ *
+ * Software distributed under the Mozilla Public License is distributed on an "AS IS" 
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or  implied. Please refer to 
+ * the license for the specific language governing your rights and limitations.
+ *
+ * @author Michael D'Amour
+ */
 package org.pentaho.vfs.ui;
 
 import java.io.File;
@@ -8,6 +22,7 @@ import java.util.List;
 import org.apache.commons.vfs.Capability;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.KeyEvent;
@@ -28,9 +43,14 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.vfs.messages.Messages;
 
 public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListener {
-  public static final int VFS_DIALOG_OPEN = 0;
+  
+  public static final int VFS_DIALOG_OPEN_FILE = 0;
+  
+  public static final int VFS_DIALOG_OPEN_DIRECTORY = 1;
 
-  public static final int VFS_DIALOG_SAVEAS = 1;
+  public static final int VFS_DIALOG_OPEN_FILE_OR_DIRECTORY = 2;
+  
+  public static final int VFS_DIALOG_SAVEAS = 3;
 
   FileObject rootFile;
 
@@ -60,7 +80,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   Combo fileFilterCombo = null;
 
-  int fileDialogMode = VFS_DIALOG_OPEN;
+  int fileDialogMode = VFS_DIALOG_OPEN_FILE;
 
   String[] fileFilters;
 
@@ -78,7 +98,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     this.fileFilters = fileFilters;
     this.fileFilterNames = fileFilterNames;
     dialog = new Shell(applicationShell, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
-    if (fileDialogMode == VFS_DIALOG_OPEN) {
+    if (fileDialogMode != VFS_DIALOG_SAVEAS) {
       dialog.setText(Messages.getString("VfsFileChooserDialog.openFile")); //$NON-NLS-1$
     } else {
       dialog.setText(Messages.getString("VfsFileChooserDialog.saveAs")); //$NON-NLS-1$
@@ -155,20 +175,25 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     Composite buttonPanel = new Composite(dialog, SWT.NONE);
     GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
     buttonPanel.setLayoutData(gridData);
-    buttonPanel.setLayout(new GridLayout(3, false));
+    buttonPanel.setLayout(new GridLayout(4, false));
     Label emptyLabel = new Label(buttonPanel, SWT.NONE);
     gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
     emptyLabel.setLayoutData(gridData);
     okButton = new Button(buttonPanel, SWT.PUSH);
     okButton.setText(Messages.getString("VfsFileChooserDialog.ok")); //$NON-NLS-1$
     gridData = new GridData(SWT.FILL, SWT.FILL, false, false);
+    gridData.widthHint = 90;
     okButton.setLayoutData(gridData);
     okButton.addSelectionListener(this);
     cancelButton = new Button(buttonPanel, SWT.PUSH);
     cancelButton.setText(Messages.getString("VfsFileChooserDialog.cancel")); //$NON-NLS-1$
     cancelButton.addSelectionListener(this);
     gridData = new GridData(SWT.FILL, SWT.FILL, false, false);
+    gridData.widthHint = 90;
     cancelButton.setLayoutData(gridData);
+    Label emptyLabel2 = new Label(buttonPanel, SWT.NONE);
+    gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+    emptyLabel2.setLayoutData(gridData);
   }
 
   public void createFileFilterPanel(Shell dialog) {
@@ -247,7 +272,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     changeRootButton.addSelectionListener(this);
 
     Label parentFoldersLabel = new Label(chooserToolbarPanel, SWT.NONE);
-    if (fileDialogMode == VFS_DIALOG_OPEN) {
+    if (fileDialogMode != VFS_DIALOG_SAVEAS) {
       parentFoldersLabel.setText(Messages.getString("VfsFileChooserDialog.openFromFolder")); //$NON-NLS-1$
     } else {
       parentFoldersLabel.setText(Messages.getString("VfsFileChooserDialog.saveInFolder")); //$NON-NLS-1$
@@ -306,6 +331,16 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     if (fileDialogMode == VFS_DIALOG_SAVEAS) {
       enteredFileName = fileNameText.getText();
     }
+    
+    try {
+      if (fileDialogMode == VFS_DIALOG_OPEN_FILE && vfsBrowser.getSelectedFileObject().getType().equals(FileType.FOLDER)) {
+        // try to open this node, it is a directory
+        vfsBrowser.selectTreeItemByFileObject(vfsBrowser.getSelectedFileObject(), true);
+        return;
+      }
+    } catch (FileSystemException e) {
+    }
+    
     okPressed = true;
     dialog.dispose();
   }
@@ -442,7 +477,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   }
 
   public void fireFileObjectDoubleClicked(FileObject selectedItem) {
-    if (fileDialogMode == VFS_DIALOG_OPEN) {
+    if (fileDialogMode != VFS_DIALOG_SAVEAS) {
       okPressed = true;
       dialog.dispose();
     } else {

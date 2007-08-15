@@ -1,3 +1,18 @@
+/*
+ * Copyright 2007 Pentaho Corporation.  All rights reserved. 
+ * This software was developed by Pentaho Corporation and is provided under the terms 
+ * of the Mozilla Public License, Version 1.1, or any later version. You may not use 
+ * this file except in compliance with the license. If you need a copy of the license, 
+ * please go to http://www.mozilla.org/MPL/MPL-1.1.txt. The Original Code is the Pentaho 
+ * BI Platform.  The Initial Developer is Pentaho Corporation.
+ *
+ * Software distributed under the Mozilla Public License is distributed on an "AS IS" 
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or  implied. Please refer to 
+ * the license for the specific language governing your rights and limitations.
+ *
+ * @author Michael D'Amour
+ */
+
 package org.pentaho.vfs.test;
 
 import java.io.File;
@@ -67,13 +82,13 @@ public class FileChooserTest {
 
       public void widgetSelected(SelectionEvent arg0) {
         FileObject initialFile = null;
-//        try {
-////          initialFile = rootFile.resolveFile("/home/mdamour");
-//        } catch (FileSystemException e) {
-//          e.printStackTrace();
-//        }
+        // try {
+        // // initialFile = rootFile.resolveFile("/home/mdamour");
+        // } catch (FileSystemException e) {
+        // e.printStackTrace();
+        // }
         VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(rootFile, initialFile);
-        FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN);
+        FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE);
         if (selectedFile != null) {
           System.out.println(Messages.getString("FileChooserTest.selectedFileEquals") + selectedFile.getName()); //$NON-NLS-1$
         } else {
