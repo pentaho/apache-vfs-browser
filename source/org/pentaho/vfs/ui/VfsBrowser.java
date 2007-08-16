@@ -145,7 +145,13 @@ public class VfsBrowser extends Composite {
 
       public void widgetSelected(SelectionEvent arg0) {
         try {
-          deleteItem(fileSystemTree.getSelection()[0]);
+          MessageBox messageDialog = new MessageBox(getDisplay().getActiveShell(), SWT.YES | SWT.NO);
+          messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
+          messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + ((FileObject)fileSystemTree.getSelection()[0].getData()).getName().getFriendlyURI()); //$NON-NLS-1$
+          int status = messageDialog.open();
+          if (status == SWT.YES) {
+            deleteItem(fileSystemTree.getSelection()[0]);
+          }
         } catch (FileSystemException e) {
           e.printStackTrace();
           MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.YES | SWT.NO);
@@ -185,8 +191,7 @@ public class VfsBrowser extends Composite {
         }
       }
     });
-    
-    
+
     fileSystemTree.addMouseListener(new MouseListener() {
       public void mouseDoubleClick(MouseEvent e) {
         TreeItem ti = fileSystemTree.getSelection()[0];
