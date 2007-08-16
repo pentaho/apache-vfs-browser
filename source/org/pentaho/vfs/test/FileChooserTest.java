@@ -81,7 +81,7 @@ public class FileChooserTest {
       }
 
       public void widgetSelected(SelectionEvent arg0) {
-        FileObject initialFile = null;
+        FileObject initialFile = rootFile;
         // try {
         // // initialFile = rootFile.resolveFile("/home/mdamour");
         // } catch (FileSystemException e) {

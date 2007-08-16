@@ -165,7 +165,7 @@ public class VfsBrowser extends Composite {
         promptForRenameFile();
       }
     });
-
+ 
     fileSystemTree.addMouseListener(new MouseListener() {
       public void mouseDoubleClick(MouseEvent e) {
         TreeItem ti = fileSystemTree.getSelection()[0];
@@ -210,7 +210,7 @@ public class VfsBrowser extends Composite {
         }
         // if (!ti.getExpanded()) {
         // ti.setExpanded(true);
-        // fireFileObjectSelected();
+        fireFileObjectSelected();
         // }
       }
     });
@@ -222,6 +222,7 @@ public class VfsBrowser extends Composite {
           ti.removeAll();
           populateFileSystemTree((FileObject) ti.getData(), fileSystemTree, ti);
         }
+        fireFileObjectSelected();
       }
 
       public void treeCollapsed(TreeEvent e) {
@@ -229,10 +230,6 @@ public class VfsBrowser extends Composite {
         ti.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif"))); //$NON-NLS-1$
       }
     });
-    if (fileSystemTree.getItemCount() > 0) {
-      fileSystemTree.setSelection(fileSystemTree.getItem(0));
-      fileSystemTree.getItem(0).setExpanded(true);
-    }
   }
 
   public void promptForRenameFile() {
@@ -378,12 +375,10 @@ public class VfsBrowser extends Composite {
           treeItem.removeAll();
           populateFileSystemTree(obj, fileSystemTree, treeItem);
         }
-        if (!treeItem.isDisposed()) {
-          treeItem.setExpanded(expandSelection);
-          fileSystemTree.setSelection(treeItem);
-          setSelectedFileObject(obj);
-          fireFileObjectSelected();
-        }
+      }
+      if (treeItem != null && !treeItem.isDisposed()) {
+        fileSystemTree.setSelection(treeItem);
+        treeItem.setExpanded(expandSelection);
       }
     }
   }
@@ -420,6 +415,14 @@ public class VfsBrowser extends Composite {
     rootFileObject = newRoot;
     fileSystemTree.removeAll();
     populateFileSystemTree(newRoot, fileSystemTree, null);
+    try {
+      selectTreeItemByFileObject(newRoot, true);
+    } catch (FileSystemException e) {
+    }
+    if (fileSystemTree.getItemCount() > 0 && fileSystemTree.getSelection().length == 0) {
+      fileSystemTree.setSelection(fileSystemTree.getItem(0));
+      fileSystemTree.getItem(0).setExpanded(true);
+    }
   }
 
   public void populateFileSystemTree(final FileObject inputFile, final Tree tree, TreeItem item) {
@@ -490,6 +493,10 @@ public class VfsBrowser extends Composite {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
+        }
+        if (fileSystemTree.getItemCount() > 0 && fileSystemTree.getSelection().length == 0) {
+          fileSystemTree.setSelection(fileSystemTree.getItem(0));
+          fileSystemTree.getItem(0).setExpanded(true);
         }
       }
     };
