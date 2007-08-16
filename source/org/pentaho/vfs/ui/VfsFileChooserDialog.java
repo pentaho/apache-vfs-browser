@@ -497,6 +497,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         parentChain.add(parentFileObject);
         parentFileObject = parentFileObject.getParent();
       }
+      
+      File roots[] = File.listRoots();
+      for (int i=0;i<roots.length;i++) {
+        parentChain.add(selectedItem.getFileSystem().getFileSystemManager().resolveFile(roots[i].getAbsolutePath()));
+      }
+      
       String items[] = new String[parentChain.size()];
       int idx = 0;
       for (int i = parentChain.size() - 1; i >= 0; i--) {
@@ -539,10 +545,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
       if (scheme != null) {
         try {
-          FileObject jarFileObject = selectedItem.getFileSystem().getFileSystemManager().resolveFile(scheme + selectedItem.getName().getPath());
+          FileObject jarFileObject = selectedItem.getFileSystem().getFileSystemManager().resolveFile(scheme + selectedItem.getName().getFriendlyURI());
           vfsBrowser.resetVfsRoot(jarFileObject);
           updateParentFileCombo(jarFileObject);
+          vfsBrowser.fileSystemTree.forceFocus();
         } catch (FileSystemException e) {
+          e.printStackTrace();
           okPressed = true;
           dialog.dispose();
         }
