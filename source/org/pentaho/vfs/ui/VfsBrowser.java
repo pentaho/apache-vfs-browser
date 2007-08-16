@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.vfs.FileName;
 import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystem;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
 import org.eclipse.swt.SWT;
@@ -165,7 +166,27 @@ public class VfsBrowser extends Composite {
         promptForRenameFile();
       }
     });
- 
+
+    MenuItem separatorItem = new MenuItem(popupMenu, SWT.SEPARATOR);
+
+    MenuItem refreshItem = new MenuItem(popupMenu, SWT.PUSH);
+    refreshItem.setText(Messages.getString("VfsBrowser.refresh")); //$NON-NLS-1$
+    refreshItem.addSelectionListener(new SelectionListener() {
+      public void widgetDefaultSelected(SelectionEvent arg0) {
+      }
+
+      public void widgetSelected(SelectionEvent arg0) {
+        fileObjectChildrenMap.clear();
+        try {
+          selectedFileObject.refresh();
+          applyFilter();
+        } catch (FileSystemException e) {
+          e.printStackTrace();
+        }
+      }
+    });
+    
+    
     fileSystemTree.addMouseListener(new MouseListener() {
       public void mouseDoubleClick(MouseEvent e) {
         TreeItem ti = fileSystemTree.getSelection()[0];
@@ -260,6 +281,10 @@ public class VfsBrowser extends Composite {
 
   public boolean createFolder(String folderName) throws FileSystemException {
     FileObject newFolder = getSelectedFileObject().resolveFile(folderName);
+    int i = 2;
+    while (newFolder.exists()) {
+      newFolder = getSelectedFileObject().resolveFile(folderName + (i++));
+    }
     newFolder.createFolder();
     TreeItem newFolderTreeItem = new TreeItem(fileSystemTree.getSelection()[0], SWT.NONE);
     newFolderTreeItem.setData(newFolder);
@@ -306,16 +331,10 @@ public class VfsBrowser extends Composite {
     try {
       if (destFile.getChildren() != null) {
         destFile = destFile.resolveFile(source.getText());
-        if (!destFile.exists()) {
-          destFile.createFile();
-        }
       }
     } catch (Exception e) {
       destFile = destFile.getParent().resolveFile(source.getText());
       destination = destination.getParentItem();
-      if (!destFile.exists()) {
-        destFile.createFile();
-      }
     }
     if (!file.getParent().equals(destFile.getParent())) {
       file.moveTo(destFile);

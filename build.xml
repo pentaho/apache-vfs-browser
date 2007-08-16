@@ -36,7 +36,7 @@
 		</javac>
 	</target>
 
-	<target name="dist" depends="compile" description="Creates a ZIP distribution of the apache-vfs-browser.">
+	<target name="dist" depends="clean-dist, compile" description="Creates a ZIP distribution of the apache-vfs-browser.">
 		<mkdir dir="dist" />
 		<zip destfile="dist/pentaho-vfs-browser.jar" basedir="bin" excludes="**/*.properties">
 			<zipfileset dir="resources/icons" prefix="icons" />

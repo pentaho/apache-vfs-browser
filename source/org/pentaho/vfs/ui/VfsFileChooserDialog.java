@@ -62,7 +62,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   Shell dialog = null;
 
-  boolean okPressed = true;
+  boolean okPressed = false;
 
   Button okButton = null;
 
