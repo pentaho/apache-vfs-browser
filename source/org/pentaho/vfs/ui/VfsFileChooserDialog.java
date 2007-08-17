@@ -179,9 +179,14 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
     buttonPanel.setLayoutData(gridData);
     buttonPanel.setLayout(new GridLayout(4, false));
-    Label emptyLabel = new Label(buttonPanel, SWT.NONE);
-    gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-    emptyLabel.setLayoutData(gridData);
+
+    String buttonAlign = System.getProperty("org.pentaho.di.buttonPosition", "center").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
+
+    if (!"left".equals(buttonAlign)) { //$NON-NLS-1$
+      Label emptyLabel = new Label(buttonPanel, SWT.NONE);
+      gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+      emptyLabel.setLayoutData(gridData);
+    }
     okButton = new Button(buttonPanel, SWT.PUSH);
     okButton.setText(Messages.getString("VfsFileChooserDialog.ok")); //$NON-NLS-1$
     gridData = new GridData(SWT.FILL, SWT.FILL, false, false);
@@ -194,9 +199,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     gridData = new GridData(SWT.FILL, SWT.FILL, false, false);
     gridData.widthHint = 90;
     cancelButton.setLayoutData(gridData);
-    Label emptyLabel2 = new Label(buttonPanel, SWT.NONE);
-    gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-    emptyLabel2.setLayoutData(gridData);
+    if ("center".equals(buttonAlign)) { //$NON-NLS-1$
+      Label emptyLabel = new Label(buttonPanel, SWT.NONE);
+      gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+      emptyLabel.setLayoutData(gridData);
+    }
   }
 
   public void createFileFilterPanel(Shell dialog) {
@@ -497,12 +504,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         parentChain.add(parentFileObject);
         parentFileObject = parentFileObject.getParent();
       }
-      
+
       File roots[] = File.listRoots();
-      for (int i=0;i<roots.length;i++) {
+      for (int i = 0; i < roots.length; i++) {
         parentChain.add(selectedItem.getFileSystem().getFileSystemManager().resolveFile(roots[i].getAbsolutePath()));
       }
-      
+
       String items[] = new String[parentChain.size()];
       int idx = 0;
       for (int i = parentChain.size() - 1; i >= 0; i--) {
