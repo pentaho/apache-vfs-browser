@@ -613,4 +613,18 @@ public class VfsBrowser extends Composite {
       listener.fireFileObjectSelected(getSelectedFileObject());
     }
   }
+
+  public void selectNextItem() {
+	  fileSystemTree.setFocus();
+	  // TODO: move one down
+  }
+
+  public void selectPreviousItem() {
+	  fileSystemTree.setFocus();
+	  // TODO: move one up;
+  }
+
+  public FileObject getRootFileObject() {
+	return rootFileObject;
+  }
 }

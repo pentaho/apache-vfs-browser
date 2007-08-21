@@ -294,6 +294,37 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     openFileCombo.addKeyListener(new KeyListener() {
 
       public void keyPressed(KeyEvent event) {
+    	// UP : 
+    	//
+        if ( (event.keyCode == SWT.ARROW_UP) && ((event.stateMask & SWT.CONTROL) == 0) && ((event.stateMask & SWT.ALT)==0) ) {
+          FileObject newRoot=null;
+          try {
+            newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(openFileCombo.getText());
+          }
+          catch(FileSystemException e) {
+            // Ignore typo
+          }
+          if (newRoot!=null && !newRoot.equals(vfsBrowser.getRootFileObject())) {
+            vfsBrowser.resetVfsRoot(newRoot);
+          }
+          vfsBrowser.selectPreviousItem();
+        }
+          
+        // DOWN:
+        //
+        if ( (event.keyCode == SWT.ARROW_DOWN) && ((event.stateMask & SWT.CONTROL) == 0) && ((event.stateMask & SWT.ALT)==0) ) {
+            FileObject newRoot=null;
+            try {
+              newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(openFileCombo.getText());
+            }
+            catch(FileSystemException e) {
+              // Ignore typo
+            }
+            if (newRoot!=null && !newRoot.equals(vfsBrowser.getRootFileObject())) {
+              vfsBrowser.resetVfsRoot(newRoot);
+            }
+            vfsBrowser.selectNextItem();
+        }
       }
 
       public void keyReleased(KeyEvent event) {
