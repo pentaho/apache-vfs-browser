@@ -180,7 +180,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     buttonPanel.setLayoutData(gridData);
     buttonPanel.setLayout(new GridLayout(4, false));
 
-    String buttonAlign = System.getProperty("org.pentaho.di.buttonPosition", "center").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
+    String buttonAlign = System.getProperty("org.pentaho.di.buttonPosition", "right").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
 
     if (!"left".equals(buttonAlign)) { //$NON-NLS-1$
       Label emptyLabel = new Label(buttonPanel, SWT.NONE);

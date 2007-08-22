@@ -26,7 +26,6 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.vfs.FileName;
 import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystem;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
 import org.eclipse.swt.SWT;
@@ -96,7 +95,7 @@ public class VfsBrowser extends Composite {
     column2.setWidth(120);
     final TreeColumn column3 = new TreeColumn(fileSystemTree, SWT.LEFT);
     column3.setText(Messages.getString("VfsBrowser.modified")); //$NON-NLS-1$
-    column3.setWidth(120);
+    column3.setWidth(180);
 
     parent.getShell().addControlListener(new ControlListener() {
       public void controlMoved(ControlEvent arg0) {
@@ -147,7 +146,7 @@ public class VfsBrowser extends Composite {
         try {
           MessageBox messageDialog = new MessageBox(getDisplay().getActiveShell(), SWT.YES | SWT.NO);
           messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
-          messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + ((FileObject)fileSystemTree.getSelection()[0].getData()).getName().getFriendlyURI()); //$NON-NLS-1$
+          messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + ((FileObject) fileSystemTree.getSelection()[0].getData()).getName().getFriendlyURI()); //$NON-NLS-1$
           int status = messageDialog.open();
           if (status == SWT.YES) {
             deleteItem(fileSystemTree.getSelection()[0]);
@@ -368,10 +367,12 @@ public class VfsBrowser extends Composite {
 
   public void applyFilter() throws FileSystemException {
     // need to apply filter to entire tree (deletes nodes)
-    FileObject selectedFileObject = (FileObject) fileSystemTree.getSelection()[0].getData();
-    fileSystemTree.removeAll();
-    populateFileSystemTree(rootFileObject, fileSystemTree, null);
-    selectTreeItemByFileObject(selectedFileObject, true);
+    if (fileSystemTree.getSelection() != null && fileSystemTree.getSelection().length > 0) {
+      FileObject selectedFileObject = (FileObject) fileSystemTree.getSelection()[0].getData();
+      fileSystemTree.removeAll();
+      populateFileSystemTree(rootFileObject, fileSystemTree, null);
+      selectTreeItemByFileObject(selectedFileObject, true);
+    }
   }
 
   public void selectTreeItemByFileObject(FileObject selectedFileObject, boolean expandSelection) throws FileSystemException {
