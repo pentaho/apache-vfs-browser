@@ -146,16 +146,15 @@ public class VfsBrowser extends Composite {
         try {
           MessageBox messageDialog = new MessageBox(getDisplay().getActiveShell(), SWT.YES | SWT.NO);
           messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
-          messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + ((FileObject) fileSystemTree.getSelection()[0].getData()).getName().getFriendlyURI()); //$NON-NLS-1$
+          messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + " " + ((FileObject) fileSystemTree.getSelection()[0].getData()).getName().getFriendlyURI()); //$NON-NLS-1$
           int status = messageDialog.open();
           if (status == SWT.YES) {
             deleteItem(fileSystemTree.getSelection()[0]);
           }
         } catch (FileSystemException e) {
-          e.printStackTrace();
-          MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.YES | SWT.NO);
+          MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.OK);
           errorDialog.setText(Messages.getString("VfsBrowser.error")); //$NON-NLS-1$
-          errorDialog.setMessage(e.getMessage());
+          errorDialog.setMessage(e.getMessage() + "\n" + e.getCause().getMessage());
           errorDialog.open();
         }
       }
@@ -274,7 +273,7 @@ public class VfsBrowser extends Composite {
         } catch (FileSystemException e) {
           MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.OK);
           errorDialog.setText(Messages.getString("VfsBrowser.error")); //$NON-NLS-1$
-          errorDialog.setMessage(e.getMessage());
+          errorDialog.setMessage(e.getCause().getMessage());
           errorDialog.open();
         }
       } else {

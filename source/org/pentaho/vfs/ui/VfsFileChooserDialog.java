@@ -450,10 +450,9 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         try {
           vfsBrowser.deleteSelectedItem();
         } catch (FileSystemException e) {
-          e.printStackTrace();
           MessageBox errorDialog = new MessageBox(se.widget.getDisplay().getActiveShell(), SWT.OK);
           errorDialog.setText(Messages.getString("VfsFileChooserDialog.error")); //$NON-NLS-1$
-          errorDialog.setMessage(e.getMessage());
+          errorDialog.setMessage(e.getMessage() + "\n" + e.getCause().getMessage());
           errorDialog.open();
         }
       }
