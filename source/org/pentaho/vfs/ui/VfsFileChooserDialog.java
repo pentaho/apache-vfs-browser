@@ -163,6 +163,9 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       FileObject returnFile = vfsBrowser.getSelectedFileObject();
       if (returnFile != null && fileDialogMode == VFS_DIALOG_SAVEAS) {
         try {
+          if (returnFile.getType().equals(FileType.FILE)) {
+            returnFile = returnFile.getParent();
+          }
           returnFile = returnFile.resolveFile(enteredFileName);
         } catch (FileSystemException e) {
           e.printStackTrace();
