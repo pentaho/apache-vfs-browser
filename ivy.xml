@@ -9,12 +9,14 @@
     	<conf name="default-swt-windows" visibility="private"/>
     	<conf name="default-swt-linux"   visibility="private"/>
     	<conf name="default-swt-mac"     visibility="private"/>
+    	<conf name="source"/>
     </configurations>
     
     <publications>
     	<artifact name="apache-vfs-browser" type="jar"  conf="default" ext="jar"/>
+    	<artifact name="apache-vfs-browser" m:classifier="sources" type="source" ext="jar" conf="source"/>
     </publications>
-    
+        
     <dependencies defaultconf="default->default">
     
         <!--  external dependencies -->
