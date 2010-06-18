@@ -42,7 +42,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.vfs.messages.Messages;
 
-public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListener {
+public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListener, IVfsFileChooser {
 
   public static final int VFS_DIALOG_OPEN_FILE = 0;
 
