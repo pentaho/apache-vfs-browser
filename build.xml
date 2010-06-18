@@ -77,6 +77,7 @@
 	        <attribute name="Implementation-ProductID" value="${impl.productID}" />
 	      </manifest>
 	      <fileset dir="${classes.dir}" excludes="**/*.properties, **/vfs/test/*" />
+	      <fileset dir="${res.dir}" includes="**/*" />
 	    </jar>
 	  </target>
 	
