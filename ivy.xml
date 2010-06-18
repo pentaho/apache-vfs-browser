@@ -13,8 +13,8 @@
     </configurations>
     
     <publications>
-    	<artifact name="apache-vfs-browser" type="jar"  conf="default" ext="jar"/>
-    	<artifact name="apache-vfs-browser" m:classifier="sources" type="source" ext="jar" conf="source"/>
+    	<artifact name="pentaho-vfs-browser" type="jar"  conf="default" ext="jar"/>
+    	<artifact name="pentaho-vfs-browser" m:classifier="sources" type="source" ext="jar" conf="source"/>
     </publications>
         
     <dependencies defaultconf="default->default">
