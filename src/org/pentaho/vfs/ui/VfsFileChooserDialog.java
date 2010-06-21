@@ -52,41 +52,41 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public static final int VFS_DIALOG_SAVEAS = 3;
 
-  FileObject rootFile;
+  public FileObject rootFile;
 
-  FileObject initialFile;
+  public FileObject initialFile;
 
-  Text fileNameText = null;
+  public Text fileNameText = null;
 
-  String enteredFileName = ""; //$NON-NLS-1$
+  public String enteredFileName = ""; //$NON-NLS-1$
 
-  Shell dialog = null;
+  public Shell dialog = null;
 
-  boolean okPressed = false;
+  public boolean okPressed = false;
 
-  Button okButton = null;
+  public Button okButton = null;
 
-  Button cancelButton = null;
+  public Button cancelButton = null;
 
   // Button changeRootButton = null;
 
-  Button folderUpButton = null;
+  public Button folderUpButton = null;
 
-  Button deleteFileButton = null;
+  public Button deleteFileButton = null;
 
-  Button newFolderButton = null;
+  public Button newFolderButton = null;
 
-  Combo openFileCombo = null;
+  public Combo openFileCombo = null;
 
-  Combo fileFilterCombo = null;
+  public Combo fileFilterCombo = null;
 
-  int fileDialogMode = VFS_DIALOG_OPEN_FILE;
+  public int fileDialogMode = VFS_DIALOG_OPEN_FILE;
 
-  String[] fileFilters;
+  public String[] fileFilters;
 
-  String[] fileFilterNames;
+  public String[] fileFilterNames;
 
-  VfsBrowser vfsBrowser = null;
+  public VfsBrowser vfsBrowser = null;
 
   public VfsFileChooserDialog(FileObject rootFile, FileObject initialFile) {
     this.rootFile = rootFile;

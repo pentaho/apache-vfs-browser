@@ -60,21 +60,21 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.pentaho.vfs.messages.Messages;
 
 public class VfsBrowser extends Composite {
-  Tree fileSystemTree = null;
+  public Tree fileSystemTree = null;
 
-  FileObject rootFileObject = null;
+  protected FileObject rootFileObject = null;
 
-  FileObject selectedFileObject = null;
+  protected FileObject selectedFileObject = null;
 
-  List eventListenerList = new ArrayList();
+  protected List eventListenerList = new ArrayList();
 
-  boolean showFoldersOnly = false;
+  protected boolean showFoldersOnly = false;
 
-  boolean allowDoubleClickOpenFolder = false;
+  protected boolean allowDoubleClickOpenFolder = false;
 
-  String fileFilter = null;
+  protected String fileFilter = null;
 
-  HashMap fileObjectChildrenMap = new HashMap();
+  protected HashMap fileObjectChildrenMap = new HashMap();
 
   public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter, final boolean showFoldersOnly, final boolean allowDoubleClickOpenFolder) {
     super(parent, style);
