@@ -599,11 +599,18 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(openFileCombo.getText());
       }
       catch(FileSystemException e) {
-        // Ignore typo
+        displayMessageBox(SWT.OK, Messages.getString("VfsFileChooserDialog.error"), e.getMessage());
       }
       if (newRoot!=null && !newRoot.equals(vfsBrowser.getRootFileObject())) {
         vfsBrowser.resetVfsRoot(newRoot);
       }
+  }
+  
+  private void displayMessageBox(int widgetArguments, String title, String message) {
+      MessageBox errorDialog = new MessageBox(vfsBrowser.getDisplay().getActiveShell(), widgetArguments);
+      errorDialog.setText(title); //$NON-NLS-1$
+      errorDialog.setMessage(message);
+      errorDialog.open();
   }
 
 }
