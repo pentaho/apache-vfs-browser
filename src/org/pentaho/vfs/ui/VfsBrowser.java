@@ -387,23 +387,26 @@ public class VfsBrowser extends Composite {
       selectedFileObjectParentList.add(parent);
       parent = parent.getParent();
     }
-    TreeItem treeItem = fileSystemTree.getSelection()[0];
-    treeItem.setExpanded(true);
-    fileSystemTree.setSelection(treeItem);
-    setSelectedFileObject(selectedFileObject);
-    for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
-      FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
-      treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
-      if (treeItem != null && !treeItem.isDisposed()) {
-        if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
-          treeItem.removeAll();
-          populateFileSystemTree(obj, fileSystemTree, treeItem);
-        }
-      }
-      if (treeItem != null && !treeItem.isDisposed()) {
+    
+    if (fileSystemTree.getSelection().length>0) {
+        TreeItem treeItem = fileSystemTree.getSelection()[0];
+        treeItem.setExpanded(true);
         fileSystemTree.setSelection(treeItem);
-        treeItem.setExpanded(expandSelection);
-      }
+        setSelectedFileObject(selectedFileObject);
+        for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
+          FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
+          treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
+          if (treeItem != null && !treeItem.isDisposed()) {
+            if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+              treeItem.removeAll();
+              populateFileSystemTree(obj, fileSystemTree, treeItem);
+            }
+          }
+          if (treeItem != null && !treeItem.isDisposed()) {
+            fileSystemTree.setSelection(treeItem);
+            treeItem.setExpanded(expandSelection);
+          }
+        }
     }
   }
 
