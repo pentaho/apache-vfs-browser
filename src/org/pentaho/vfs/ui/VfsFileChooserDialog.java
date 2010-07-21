@@ -87,12 +87,21 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   public String[] fileFilterNames;
 
   public VfsBrowser vfsBrowser = null;
+  
+  public FileObject defaultInitialFile = null;
 
   public VfsFileChooserDialog(FileObject rootFile, FileObject initialFile) {
     this.rootFile = rootFile;
     this.initialFile = initialFile;
   }
 
+  public FileObject open(Shell applicationShell, FileObject defaultInitialFile,
+          String fileName, String[] fileFilters, String[] fileFilterNames,
+          int fileDialogMode) {
+      this.defaultInitialFile = defaultInitialFile;
+      return open(applicationShell, fileName, fileFilters, fileFilterNames, fileDialogMode);
+  }
+  
   public FileObject open(Shell applicationShell, String fileName, String[] fileFilters, String[] fileFilterNames, int fileDialogMode) {
     this.fileDialogMode = fileDialogMode;
     this.fileFilters = fileFilters;
@@ -612,5 +621,4 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       errorDialog.setMessage(message);
       errorDialog.open();
   }
-
 }
