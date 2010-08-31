@@ -19,6 +19,8 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -76,7 +78,8 @@ public class VfsBrowser extends Composite {
 
   protected HashMap fileObjectChildrenMap = new HashMap();
 
-  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter, final boolean showFoldersOnly, final boolean allowDoubleClickOpenFolder) {
+  public VfsBrowser(final Composite parent, int style, final FileObject rootFileObject, String fileFilter, final boolean showFoldersOnly,
+      final boolean allowDoubleClickOpenFolder) {
     super(parent, style);
     this.showFoldersOnly = showFoldersOnly;
     this.allowDoubleClickOpenFolder = allowDoubleClickOpenFolder;
@@ -387,26 +390,26 @@ public class VfsBrowser extends Composite {
       selectedFileObjectParentList.add(parent);
       parent = parent.getParent();
     }
-    
-    if (fileSystemTree.getSelection().length>0) {
-        TreeItem treeItem = fileSystemTree.getSelection()[0];
-        treeItem.setExpanded(true);
-        fileSystemTree.setSelection(treeItem);
-        setSelectedFileObject(selectedFileObject);
-        for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
-          FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
-          treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
-          if (treeItem != null && !treeItem.isDisposed()) {
-            if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
-              treeItem.removeAll();
-              populateFileSystemTree(obj, fileSystemTree, treeItem);
-            }
-          }
-          if (treeItem != null && !treeItem.isDisposed()) {
-            fileSystemTree.setSelection(treeItem);
-            treeItem.setExpanded(expandSelection);
+
+    if (fileSystemTree.getSelection().length > 0) {
+      TreeItem treeItem = fileSystemTree.getSelection()[0];
+      treeItem.setExpanded(true);
+      fileSystemTree.setSelection(treeItem);
+      setSelectedFileObject(selectedFileObject);
+      for (int i = selectedFileObjectParentList.size() - 1; i >= 0; i--) {
+        FileObject obj = (FileObject) selectedFileObjectParentList.get(i);
+        treeItem = findTreeItemByName(treeItem, obj.getName().getBaseName());
+        if (treeItem != null && !treeItem.isDisposed()) {
+          if (treeItem.getData() == null || treeItem.getData("isLoaded") == null || !((Boolean) treeItem.getData("isLoaded")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+            treeItem.removeAll();
+            populateFileSystemTree(obj, fileSystemTree, treeItem);
           }
         }
+        if (treeItem != null && !treeItem.isDisposed()) {
+          fileSystemTree.setSelection(treeItem);
+          treeItem.setExpanded(expandSelection);
+        }
+      }
     }
   }
 
@@ -473,6 +476,27 @@ public class VfsBrowser extends Composite {
           children = (FileObject[]) fileObjectChildrenMap.get(inputFile.getName().getFriendlyURI());
           if (children == null && inputFile.getType().hasChildren()) {
             children = inputFile.getChildren();
+            Arrays.sort(children, new Comparator<FileObject>() {
+              public int compare(FileObject o1, FileObject o2) {
+                try {
+                  if (o1.getType().equals(o2.getType())) {
+                    return o1.getName().getBaseName().compareTo(o2.getName().getBaseName());
+                  }
+                  if (o1.getType().equals(FileType.FOLDER)) {
+                    return -1;
+                  }
+                  if (o1.getType().equals(FileType.FILE)) {
+                    return 1;
+                  }
+                } catch (Exception e) {
+                }
+                return 0;
+              }
+
+              public boolean equals(Object obj) {
+                return super.equals(obj);
+              }
+            });
             fileObjectChildrenMap.put(inputFile.getName().getFriendlyURI(), children);
           }
         } catch (FileSystemException e) {
@@ -549,7 +573,9 @@ public class VfsBrowser extends Composite {
   }
 
   public TreeItem findTreeItemByName(TreeItem treeItem, String itemName) {
-    if (treeItem == null || (treeItem.getData() != null && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem.getData()).getName().getFriendlyURI().equals(itemName)))) {
+    if (treeItem == null
+        || (treeItem.getData() != null && (((FileObject) treeItem.getData()).getName().getBaseName().equals(itemName) || ((FileObject) treeItem.getData())
+            .getName().getFriendlyURI().equals(itemName)))) {
       return treeItem;
     }
     TreeItem children[] = treeItem.getItems();
@@ -618,16 +644,16 @@ public class VfsBrowser extends Composite {
   }
 
   public void selectNextItem() {
-	  fileSystemTree.setFocus();
-	  // TODO: move one down
+    fileSystemTree.setFocus();
+    // TODO: move one down
   }
 
   public void selectPreviousItem() {
-	  fileSystemTree.setFocus();
-	  // TODO: move one up;
+    fileSystemTree.setFocus();
+    // TODO: move one up;
   }
 
   public FileObject getRootFileObject() {
-	return rootFileObject;
+    return rootFileObject;
   }
 }
