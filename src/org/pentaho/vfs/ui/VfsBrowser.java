@@ -461,7 +461,11 @@ public class VfsBrowser extends Composite {
     }
     if (item == null) {
       item = new TreeItem(tree, SWT.NONE);
-      item.setText(inputFile.getName().toString());
+      String rootName = inputFile.getName().getBaseName();
+      if (rootName == null || "".equals(rootName)) {
+        rootName = "/";
+      }
+      item.setText(rootName);
       item.setData(inputFile);
       item.setExpanded(true);
       tree.setSelection(item);
