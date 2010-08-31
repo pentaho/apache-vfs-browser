@@ -427,18 +427,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         // top of root
       }
     } else if (se.widget == newFolderButton) {
-      try {
-        vfsBrowser.createFolder(Messages.getString("VfsFileChooserDialog.newFolder")); //$NON-NLS-1$
-      } catch (FileSystemException e) {
-        MessageBox mb = new MessageBox(newFolderButton.getShell());
-        mb.setText(Messages.getString("VfsFileChooserDialog.error")); //$NON-NLS-1$
-        mb.setMessage(e.getMessage());
-        mb.open();
-      }
+        promptForNewFolder();
     } else if (se.widget == deleteFileButton) {
       MessageBox messageDialog = new MessageBox(se.widget.getDisplay().getActiveShell(), SWT.YES | SWT.NO);
       messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
-      messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + vfsBrowser.getSelectedFileObject().getName().getFriendlyURI()); //$NON-NLS-1$
+      messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + vfsBrowser.getSelectedFileObject().getName().getBaseName()); //$NON-NLS-1$
       int status = messageDialog.open();
       if (status == SWT.YES) {
         try {
@@ -475,6 +468,33 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     }
   }
 
+  public void promptForNewFolder() {
+    boolean done = false;
+    String defaultText = "New Folder";
+    String text = defaultText;
+    while (!done) {
+      if (text == null) {
+        text = defaultText;
+      }
+      TextInputDialog textDialog = new TextInputDialog(Messages.getString("VfsBrowser.enterNewFilename"), text, 500, 100); //$NON-NLS-1$
+      text = textDialog.open();
+      if (text != null && !"".equals(text)) { //$NON-NLS-1$
+        try {
+          vfsBrowser.createFolder(text); //$NON-NLS-1$
+          done = true;
+        } catch (FileSystemException e) {
+          MessageBox errorDialog = new MessageBox(newFolderButton.getShell(), SWT.OK);
+          errorDialog.setText(Messages.getString("VfsBrowser.error")); //$NON-NLS-1$
+          errorDialog.setMessage(e.getCause().getMessage());
+          errorDialog.open();
+        }
+      } else {
+        done = true;
+      }
+    }
+  }
+  
+  
   public void promptForNewVfsRoot() {
     boolean done = false;
     String defaultText = vfsBrowser.rootFileObject.getName().getFriendlyURI();

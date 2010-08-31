@@ -149,7 +149,8 @@ public class VfsBrowser extends Composite {
         try {
           MessageBox messageDialog = new MessageBox(getDisplay().getActiveShell(), SWT.YES | SWT.NO);
           messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
-          messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + " " + ((FileObject) fileSystemTree.getSelection()[0].getData()).getName().getFriendlyURI()); //$NON-NLS-1$
+          messageDialog
+              .setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + " " + ((FileObject) fileSystemTree.getSelection()[0].getData()).getName().getBaseName()); //$NON-NLS-1$
           int status = messageDialog.open();
           if (status == SWT.YES) {
             deleteItem(fileSystemTree.getSelection()[0]);
@@ -271,12 +272,21 @@ public class VfsBrowser extends Composite {
       text = textDialog.open();
       if (text != null && !"".equals(text)) { //$NON-NLS-1$
         try {
-          renameItem(fileSystemTree.getSelection()[0], text);
-          done = true;
+          done = renameItem(fileSystemTree.getSelection()[0], text);
+          if (!done) {
+            MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.OK);
+            errorDialog.setText(Messages.getString("VfsBrowser.error")); //$NON-NLS-1$
+            errorDialog.setMessage("Could not rename selection, target exists or operation not supported.");
+            errorDialog.open();
+          }
         } catch (FileSystemException e) {
           MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.OK);
           errorDialog.setText(Messages.getString("VfsBrowser.error")); //$NON-NLS-1$
-          errorDialog.setMessage(e.getCause().getMessage());
+          if (e.getCause() != null) {
+            errorDialog.setMessage(e.getCause().getMessage());
+          } else {
+            errorDialog.setMessage(e.getMessage());
+          }
           errorDialog.open();
         }
       } else {
@@ -287,9 +297,8 @@ public class VfsBrowser extends Composite {
 
   public boolean createFolder(String folderName) throws FileSystemException {
     FileObject newFolder = getSelectedFileObject().resolveFile(folderName);
-    int i = 2;
-    while (newFolder.exists()) {
-      newFolder = getSelectedFileObject().resolveFile(folderName + (i++));
+    if (newFolder.exists()) {
+      throw new FileSystemException("Folder exists, try a different name.");
     }
     newFolder.createFolder();
     TreeItem newFolderTreeItem = new TreeItem(fileSystemTree.getSelection()[0], SWT.NONE);
@@ -317,15 +326,21 @@ public class VfsBrowser extends Composite {
   public boolean renameItem(TreeItem ti, String newName) throws FileSystemException {
     FileObject file = (FileObject) ti.getData();
     FileObject newFileObject = file.getParent().resolveFile(newName);
-    if (!newFileObject.exists()) {
-      newFileObject.createFile();
+
+    if (file.canRenameTo(newFileObject)) {
+      if (!newFileObject.exists()) {
+        newFileObject.createFile();
+      } else {
+        return false;
+      }
+      file.moveTo(newFileObject);
+      ti.setText(newName);
+      ti.setData(newFileObject);
+      return true;
     } else {
       return false;
     }
-    file.moveTo(newFileObject);
-    ti.setText(newName);
-    ti.setData(newFileObject);
-    return true;
+
   }
 
   public boolean moveItem(TreeItem source, TreeItem destination) throws FileSystemException {
