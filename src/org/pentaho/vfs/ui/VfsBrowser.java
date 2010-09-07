@@ -493,7 +493,7 @@ public class VfsBrowser extends Composite {
         FileObject[] children = null;
         try {
           children = (FileObject[]) fileObjectChildrenMap.get(inputFile.getName().getFriendlyURI());
-          if (children == null && inputFile.getType().hasChildren()) {
+          if (children == null && inputFile.getType().equals(FileType.FOLDER)) {
             children = inputFile.getChildren();
             if (children == null) {
               children = new FileObject[0];

@@ -133,23 +133,32 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       }
     });
 
-    CustomVfsUiPanel localPanel = new CustomVfsUiPanel("file", "Local", this, SWT.None) {
-      public void activate() {
-        try {
-          File startFile = new File(System.getProperty("user.home"));
-          if (startFile == null || !startFile.exists()) {
-            startFile = File.listRoots()[0];
-          }
-          FileObject dot = VFS.getManager().resolveFile(startFile.toURI().toURL().toExternalForm());
-          setRootFile(dot.getFileSystem().getRoot());
-          setInitialFile(dot);
-          openFileCombo.setText(dot.getName().getFriendlyURI());
-          resolveVfsBrowser();
-        } catch (Throwable t) {
-        }
+    boolean createdLocal = false;
+    for (CustomVfsUiPanel panel : customUIPanels) {
+      if (panel.getVfsScheme().equals("file")) {
+        createdLocal = true;
       }
-    };
-    addVFSUIPanel(localPanel);
+    }
+
+    if (!createdLocal) {
+      CustomVfsUiPanel localPanel = new CustomVfsUiPanel("file", "Local", this, SWT.None) {
+        public void activate() {
+          try {
+            File startFile = new File(System.getProperty("user.home"));
+            if (startFile == null || !startFile.exists()) {
+              startFile = File.listRoots()[0];
+            }
+            FileObject dot = VFS.getManager().resolveFile(startFile.toURI().toURL().toExternalForm());
+            setRootFile(dot.getFileSystem().getRoot());
+            setInitialFile(dot);
+            openFileCombo.setText(dot.getName().getFriendlyURI());
+            resolveVfsBrowser();
+          } catch (Throwable t) {
+          }
+        }
+      };
+      addVFSUIPanel(localPanel);
+    }
   }
 
   private void selectCustomUI() {
@@ -302,6 +311,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
     // we just woke up, we are probably disposed already..
     if (!dialog.isDisposed()) {
+      hideCustomPanelChildren();
       dialog.dispose();
     }
     if (okPressed) {
@@ -601,6 +611,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       BusyIndicator.showWhile(fileFilterCombo.getDisplay(), r);
     } else {
       okPressed = false;
+      hideCustomPanelChildren();
       dialog.dispose();
     }
   }
@@ -739,10 +750,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         } catch (FileSystemException e) {
           e.printStackTrace();
           okPressed = true;
+          hideCustomPanelChildren();
           dialog.dispose();
         }
       } else {
         okPressed = true;
+        hideCustomPanelChildren();
         dialog.dispose();
       }
 
