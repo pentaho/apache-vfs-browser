@@ -495,6 +495,9 @@ public class VfsBrowser extends Composite {
           children = (FileObject[]) fileObjectChildrenMap.get(inputFile.getName().getFriendlyURI());
           if (children == null && inputFile.getType().hasChildren()) {
             children = inputFile.getChildren();
+            if (children == null) {
+              children = new FileObject[0];
+            }
             Arrays.sort(children, new Comparator<FileObject>() {
               public int compare(FileObject o1, FileObject o2) {
                 try {
