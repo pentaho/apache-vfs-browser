@@ -38,7 +38,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -144,15 +146,17 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       CustomVfsUiPanel localPanel = new CustomVfsUiPanel("file", "Local", this, SWT.None) {
         public void activate() {
           try {
-            File startFile = new File(System.getProperty("user.home"));
-            if (startFile == null || !startFile.exists()) {
-              startFile = File.listRoots()[0];
+            if (rootFile == null && initialFile == null) {
+              File startFile = new File(System.getProperty("user.home"));
+              if (startFile == null || !startFile.exists()) {
+                startFile = File.listRoots()[0];
+              }
+              FileObject dot = VFS.getManager().resolveFile(startFile.toURI().toURL().toExternalForm());
+              setRootFile(dot.getFileSystem().getRoot());
+              setInitialFile(dot);
+              openFileCombo.setText(dot.getName().getFriendlyURI());
+              resolveVfsBrowser();
             }
-            FileObject dot = VFS.getManager().resolveFile(startFile.toURI().toURL().toExternalForm());
-            setRootFile(dot.getFileSystem().getRoot());
-            setInitialFile(dot);
-            openFileCombo.setText(dot.getName().getFriendlyURI());
-            resolveVfsBrowser();
           } catch (Throwable t) {
           }
         }
@@ -224,6 +228,13 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   private void createDialog(Shell applicationShell) {
     if (dialog == null || dialog.isDisposed()) {
       dialog = new Shell(applicationShell, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
+
+      dialog.addListener(SWT.Close, new Listener() {
+        public void handleEvent(Event event) {
+          hideCustomPanelChildren();
+        }
+      });
+      
       if (fileDialogMode != VFS_DIALOG_SAVEAS) {
         dialog.setText(Messages.getString("VfsFileChooserDialog.openFile")); //$NON-NLS-1$
       } else {
