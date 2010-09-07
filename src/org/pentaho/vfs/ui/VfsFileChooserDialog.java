@@ -158,7 +158,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   }
 
   public void populateCustomUIPanel(Shell dialog) {
-    String scheme = rootFile.getName().getScheme();
+    String scheme = rootFile != null ? rootFile.getName().getScheme() : "";
     int selectIndex = 0;
     ArrayList<String> customNames = new ArrayList<String>();
     for (int i = 0; i < customUIPanels.size(); i++) {
