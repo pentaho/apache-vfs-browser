@@ -213,6 +213,15 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     this.fileFilterNames = fileFilterNames;
     this.applicationShell = applicationShell;
 
+    if (defaultInitialFile != null && rootFile == null) {
+      try {
+        rootFile = defaultInitialFile.getFileSystem().getRoot();
+        initialFile = defaultInitialFile;
+      } catch (FileSystemException ignored) {
+        // well we tried
+      }
+    }
+
     createDialog(applicationShell);
 
     populateCustomUIPanel(dialog);
