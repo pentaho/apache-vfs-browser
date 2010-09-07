@@ -136,12 +136,16 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     CustomVfsUiPanel localPanel = new CustomVfsUiPanel("file", "Local", this, SWT.None) {
       public void activate() {
         try {
-          FileObject dot = VFS.getManager().resolveFile(".");
+          File startFile = new File(System.getProperty("user.home"));
+          if (startFile == null || !startFile.exists()) {
+            startFile = File.listRoots()[0];
+          }
+          FileObject dot = VFS.getManager().resolveFile(startFile.toURI().toURL().toExternalForm());
           setRootFile(dot.getFileSystem().getRoot());
           setInitialFile(dot);
           openFileCombo.setText(dot.getName().getFriendlyURI());
           resolveVfsBrowser();
-        } catch (FileSystemException e) {
+        } catch (Throwable t) {
         }
       }
     };
