@@ -532,6 +532,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     }
 
     okPressed = true;
+    hideCustomPanelChildren();
     dialog.dispose();
   }
 
