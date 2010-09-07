@@ -21,6 +21,9 @@ public class CustomVfsUiPanel extends Composite {
     setLayout(new GridLayout(1, false));
   }
 
+  public void activate() {
+  }
+  
   public VfsFileChooserDialog getVfsFileChooserDialog() {
     return vfsFileChooserDialog;
   }

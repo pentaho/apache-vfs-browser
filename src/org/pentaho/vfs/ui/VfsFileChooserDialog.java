@@ -23,6 +23,7 @@ import org.apache.commons.vfs.Capability;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
+import org.apache.commons.vfs.VFS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.KeyEvent;
@@ -131,6 +132,20 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         selectCustomUI();
       }
     });
+
+    CustomVfsUiPanel localPanel = new CustomVfsUiPanel("file", "Local", this, SWT.None) {
+      public void activate() {
+        try {
+          FileObject dot = VFS.getManager().resolveFile(".");
+          setRootFile(dot.getFileSystem().getRoot());
+          setInitialFile(dot);
+          openFileCombo.setText(dot.getName().getFriendlyURI());
+          resolveVfsBrowser();
+        } catch (FileSystemException e) {
+        }
+      }
+    };
+    addVFSUIPanel(localPanel);
   }
 
   private void selectCustomUI() {
@@ -139,6 +154,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     for (CustomVfsUiPanel panel : customUIPanels) {
       if (desiredScheme.equals(panel.getVfsSchemeDisplayText())) {
         panel.setParent(customUIPanel);
+        panel.activate();
       }
     }
     customUIPanel.pack();
@@ -176,8 +192,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     if (customNames.size() == 0) {
       customUIPanel.setParent(fakeShell);
     } else {
-      customUIPicker.select(selectIndex);
-      customUIPicker.notifyListeners(SWT.Selection, null);
+      if (customNames.size() == 1 && customUIPanels.get(selectIndex).getVfsScheme().equals("file")) {
+        customUIPanel.setParent(fakeShell);
+      } else {
+        customUIPicker.select(selectIndex);
+        customUIPicker.notifyListeners(SWT.Selection, null);
+      }
     }
   }
 
