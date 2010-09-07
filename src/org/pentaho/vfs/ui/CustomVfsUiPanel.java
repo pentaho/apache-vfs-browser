@@ -1,5 +1,8 @@
 package org.pentaho.vfs.ui;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
 public class CustomVfsUiPanel extends Composite {
@@ -13,6 +16,9 @@ public class CustomVfsUiPanel extends Composite {
     this.vfsFileChooserDialog = vfsFileChooserDialog;
     this.vfsScheme = vfsScheme;
     this.vfsSchemeDisplayText = vfsSchemeDisplayText;
+    GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+    setLayoutData(gridData);
+    setLayout(new GridLayout(1, false));
   }
 
   public VfsFileChooserDialog getVfsFileChooserDialog() {
