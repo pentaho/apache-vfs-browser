@@ -99,6 +99,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   List<CustomVfsUiPanel> customUIPanels = new ArrayList<CustomVfsUiPanel>();
   Combo customUIPicker;
   Shell fakeShell = new Shell();
+  String initialScheme = "file";
   String schemeRestriction = null;
   boolean showFileScheme = true;
 
@@ -193,19 +194,15 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   }
 
   public void populateCustomUIPanel(Shell dialog) {
-    String scheme = rootFile != null ? rootFile.getName().getScheme() : "";
-    int selectIndex = 0;
     ArrayList<String> customNames = new ArrayList<String>();
     for (int i = 0; i < customUIPanels.size(); i++) {
       CustomVfsUiPanel panel = customUIPanels.get(i);
-      if (panel.getVfsScheme().equalsIgnoreCase("file") || schemeRestriction == null || "".equals(schemeRestriction) || panel.getVfsScheme().equalsIgnoreCase(schemeRestriction)) {
+      if (panel.getVfsScheme().equalsIgnoreCase("file") || schemeRestriction == null || "".equals(schemeRestriction)
+          || panel.getVfsScheme().equalsIgnoreCase(schemeRestriction)) {
         if (panel.getVfsScheme().equalsIgnoreCase("file") && !showFileScheme) {
           continue;
         }
         customNames.add(panel.getVfsSchemeDisplayText());
-        if (scheme.equalsIgnoreCase(panel.getVfsScheme())) {
-          selectIndex = i;
-        }
       }
     }
 
@@ -219,8 +216,19 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       if (customNames.size() == 1 && "file".equals(customNames.get(0))) {
         customUIPanel.setParent(fakeShell);
       } else {
-        customUIPicker.select(selectIndex);
-        customUIPicker.notifyListeners(SWT.Selection, null);
+        String initialSchemeDisplayText = initialScheme;
+        for (int i = 0; i < customUIPanels.size(); i++) {
+          if (customUIPanels.get(i).getVfsScheme().equalsIgnoreCase(initialScheme)) {
+            initialSchemeDisplayText = customUIPanels.get(i).getVfsSchemeDisplayText();
+            break;
+          }
+        }
+        for (int i = 0; i < customUIPicker.getItemCount(); i++) {
+          if (customUIPicker.getItem(i).equalsIgnoreCase(initialSchemeDisplayText)) {
+            customUIPicker.select(i);
+            customUIPicker.notifyListeners(SWT.Selection, null);
+          }
+        }
       }
     }
   }
@@ -259,17 +267,19 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   }
 
   public FileObject open(Shell applicationShell, String fileName, String[] fileFilters, String[] fileFilterNames, int fileDialogMode) {
-    return open(applicationShell, "", true, fileName, fileFilters, fileFilterNames, fileDialogMode);
+    return open(applicationShell, "", "file", true, fileName, fileFilters, fileFilterNames, fileDialogMode);
   }
 
-  public FileObject open(Shell applicationShell, String schemeRestriction, boolean showFileScheme, String fileName, String[] fileFilters, String[] fileFilterNames, int fileDialogMode) {
+  public FileObject open(Shell applicationShell, String schemeRestriction, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
+      String[] fileFilterNames, int fileDialogMode) {
     this.fileDialogMode = fileDialogMode;
     this.fileFilters = fileFilters;
     this.fileFilterNames = fileFilterNames;
     this.applicationShell = applicationShell;
     this.schemeRestriction = schemeRestriction;
     this.showFileScheme = showFileScheme;
-    
+    this.initialScheme = initialScheme;
+
     if (defaultInitialFile != null && rootFile == null) {
       try {
         rootFile = defaultInitialFile.getFileSystem().getRoot();
