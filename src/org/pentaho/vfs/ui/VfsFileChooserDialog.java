@@ -658,7 +658,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       if (text == null) {
         text = defaultText;
       }
-      TextInputDialog textDialog = new TextInputDialog(Messages.getString("VfsBrowser.enterNewFilename"), text, 500, 100); //$NON-NLS-1$
+      TextInputDialog textDialog = new TextInputDialog(Messages.getString("VfsBrowser.enterNewFilename"), text, 500, 160); //$NON-NLS-1$
       text = textDialog.open();
       if (text != null && !"".equals(text)) { //$NON-NLS-1$
         try {
