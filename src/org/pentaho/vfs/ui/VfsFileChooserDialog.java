@@ -113,8 +113,18 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     customUIPanel.setLayoutData(gridData);
     customUIPanel.setLayout(new GridLayout(1, false));
 
-    customUIPicker = new Combo(customUIPanel, SWT.READ_ONLY);
+    Composite comboPanel = new Composite(customUIPanel, SWT.NONE);
+    comboPanel.setLayoutData(gridData);
+    comboPanel.setLayout(new GridLayout(2, false));
+    comboPanel.setData("donotremove");
+    
+    Label lookInLabel = new Label(comboPanel, SWT.NONE);
+    lookInLabel.setText(Messages.getString("VfsFileChooserDialog.LookIn"));
     gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+    lookInLabel.setLayoutData(gridData);
+    
+    customUIPicker = new Combo(comboPanel, SWT.READ_ONLY);
+    gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false);
     customUIPicker.setLayoutData(gridData);
 
     customUIPicker.addSelectionListener(new SelectionListener() {
@@ -149,7 +159,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       CustomVfsUiPanel localPanel = new CustomVfsUiPanel("file", "Local", this, SWT.None) {
         public void activate() {
           try {
-            if (rootFile == null && initialFile == null) {
+            boolean activate = rootFile == null && initialFile == null;
+            if (!activate) {
+              activate = rootFile.getName().getScheme().equals("file");
+            }
+            if (activate) {
               File startFile = new File(System.getProperty("user.home"));
               if (startFile == null || !startFile.exists()) {
                 startFile = File.listRoots()[0];
@@ -184,7 +198,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   private void hideCustomPanelChildren() {
     Control[] children = customUIPanel.getChildren();
     for (Control child : children) {
-      if (child instanceof Combo) {
+      if (child instanceof Composite && "donotremove".equals(((Composite)child).getData())) {
         // skip
       } else {
         child.setParent(fakeShell);
