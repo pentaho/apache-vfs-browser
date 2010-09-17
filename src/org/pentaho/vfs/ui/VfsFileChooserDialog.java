@@ -334,7 +334,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
     // set the size and show the dialog
     int height = 550;
-    int width = 640;
+    int width = 800;
     dialog.setSize(width, height);
     Rectangle bounds = dialog.getDisplay().getPrimaryMonitor().getClientArea();
     int x = (bounds.width - width) / 2;
