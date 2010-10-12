@@ -307,6 +307,8 @@ public class VfsBrowser extends Composite {
     newFolderTreeItem.setImage(new Image(newFolderTreeItem.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif"))); //$NON-NLS-1$
     populateTreeItemText(newFolderTreeItem, newFolder);
     fileSystemTree.setSelection(newFolderTreeItem);
+    setSelectedFileObject(newFolder);
+    fireFileObjectSelected();
     return true;
   }
 
