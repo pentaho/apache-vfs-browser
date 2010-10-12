@@ -258,6 +258,10 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     if (dialog == null || dialog.isDisposed()) {
       dialog = new Shell(applicationShell, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
 
+      if (applicationShell.getImage() != null) {
+        dialog.setImage(applicationShell.getImage());
+      }
+      
       dialog.addListener(SWT.Close, new Listener() {
         public void handleEvent(Event event) {
           hideCustomPanelChildren();
@@ -672,7 +676,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       if (text == null) {
         text = defaultText;
       }
-      TextInputDialog textDialog = new TextInputDialog(Messages.getString("VfsBrowser.enterNewFilename"), text, 500, 160); //$NON-NLS-1$
+      TextInputDialog textDialog = new TextInputDialog(Messages.getString("VfsBrowser.enterNewFolderName"), text, 500, 160); //$NON-NLS-1$
       text = textDialog.open();
       if (text != null && !"".equals(text)) { //$NON-NLS-1$
         try {
@@ -681,7 +685,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         } catch (FileSystemException e) {
           MessageBox errorDialog = new MessageBox(newFolderButton.getShell(), SWT.OK);
           errorDialog.setText(Messages.getString("VfsBrowser.error")); //$NON-NLS-1$
-          errorDialog.setMessage(e.getCause().getMessage());
+          if (e.getCause() != null) {
+            errorDialog.setMessage(e.getCause().getMessage());
+          } else {
+            errorDialog.setMessage(e.getMessage());
+          }
           errorDialog.open();
         }
       } else {

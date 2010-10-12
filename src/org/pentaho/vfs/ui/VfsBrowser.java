@@ -298,7 +298,7 @@ public class VfsBrowser extends Composite {
   public boolean createFolder(String folderName) throws FileSystemException {
     FileObject newFolder = getSelectedFileObject().resolveFile(folderName);
     if (newFolder.exists()) {
-      throw new FileSystemException("Folder exists, try a different name.");
+      throw new FileSystemException("vfs.provider/create-folder.error", folderName);
     }
     newFolder.createFolder();
     TreeItem newFolderTreeItem = new TreeItem(fileSystemTree.getSelection()[0], SWT.NONE);
