@@ -171,7 +171,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
               FileObject dot = VFS.getManager().resolveFile(startFile.toURI().toURL().toExternalForm());
               setRootFile(dot.getFileSystem().getRoot());
               setInitialFile(dot);
-              openFileCombo.setText(dot.getName().getFriendlyURI());
+              openFileCombo.setText(dot.getName().getURI());
               resolveVfsBrowser();
             }
           } catch (Throwable t) {
@@ -327,7 +327,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     try {
       vfsBrowser.selectTreeItemByFileObject(initialFile != null ? initialFile : rootFile, true);
       // vfsBrowser.setSelectedFileObject(initialFile);
-      openFileCombo.setText(initialFile != null ? initialFile.getName().getFriendlyURI() : rootFile.getName().getFriendlyURI());
+      openFileCombo.setText(initialFile != null ? initialFile.getName().getURI() : rootFile.getName().getURI());
       updateParentFileCombo(initialFile != null ? initialFile : rootFile);
     } catch (FileSystemException e) {
       MessageBox box = new MessageBox(dialog.getShell());
@@ -470,7 +470,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       defaultFilter = fileFilters[0];
     }
     vfsBrowser = new VfsBrowser(dialog, SWT.NONE, rootFile, defaultFilter, fileDialogMode == VFS_DIALOG_SAVEAS ? true : false, false);
-    // vfsBrowser.selectTreeItemByName(rootFile.getName().getFriendlyURI(), true);
+    // vfsBrowser.selectTreeItemByName(rootFile.getName().getURI(), true);
     vfsBrowser.addVfsBrowserListener(this);
     GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
     vfsBrowser.setLayoutData(gridData);
@@ -620,7 +620,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         if (newRoot != null) {
           vfsBrowser.resetVfsRoot(newRoot);
           vfsBrowser.setSelectedFileObject(newRoot);
-          openFileCombo.setText(newRoot.getName().getFriendlyURI());
+          openFileCombo.setText(newRoot.getName().getURI());
         }
       } catch (Exception e) {
         // top of root
@@ -700,7 +700,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public void promptForNewVfsRoot() {
     boolean done = false;
-    String defaultText = vfsBrowser.rootFileObject.getName().getFriendlyURI();
+    String defaultText = vfsBrowser.rootFileObject.getName().getURI();
     String text = defaultText;
     while (!done) {
       if (text == null) {
@@ -760,7 +760,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       String items[] = new String[parentChain.size()];
       int idx = 0;
       for (int i = parentChain.size() - 1; i >= 0; i--) {
-        items[idx++] = ((FileObject) parentChain.get(i)).getName().getFriendlyURI();
+        items[idx++] = ((FileObject) parentChain.get(i)).getName().getURI();
       }
       openFileCombo.setItems(items);
       openFileCombo.select(items.length - 1);
@@ -799,7 +799,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
       if (scheme != null) {
         try {
-          FileObject jarFileObject = selectedItem.getFileSystem().getFileSystemManager().resolveFile(scheme + selectedItem.getName().getFriendlyURI());
+          FileObject jarFileObject = selectedItem.getFileSystem().getFileSystemManager().resolveFile(scheme + selectedItem.getName().getURI());
           vfsBrowser.resetVfsRoot(jarFileObject);
           updateParentFileCombo(jarFileObject);
           vfsBrowser.fileSystemTree.forceFocus();
@@ -824,7 +824,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     // something has just been selected, time to update the
     // parent file combo
     updateParentFileCombo(selectedItem);
-    // openFileCombo.setText(selectedItem.getName().getFriendlyURI());
+    // openFileCombo.setText(selectedItem.getName().getURI());
   }
 
   public void resolveVfsBrowser() {
