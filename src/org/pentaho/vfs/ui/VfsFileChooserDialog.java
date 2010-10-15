@@ -107,6 +107,10 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     customUIPanels.add(panel);
   }
 
+  public List<CustomVfsUiPanel> getCustomVfsUiPanels() {
+    return customUIPanels;
+  }
+  
   public void createCustomUIPanel(final Shell dialog) {
     customUIPanel = new Composite(dialog, SWT.NONE);
     GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
