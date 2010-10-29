@@ -231,14 +231,16 @@ public class VfsBrowser extends Composite {
       public void widgetSelected(SelectionEvent e) {
         // TreeItem ti = fileSystemTree.getSelection()[0];
         TreeItem ti = (TreeItem) e.item;
-        selectedFileObject = (FileObject) (ti.getData());
-        if (ti.getData("isLoaded") == null || !((Boolean) ti.getData("isLoaded")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
-          ti.removeAll();
-          populateFileSystemTree(selectedFileObject, fileSystemTree, ti);
+        if(ti != null) {
+          selectedFileObject = (FileObject) (ti.getData());
+          if (ti.getData("isLoaded") == null || !((Boolean) ti.getData("isLoaded")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
+            ti.removeAll();
+            populateFileSystemTree(selectedFileObject, fileSystemTree, ti);
+          }
+          // if (!ti.getExpanded()) {
+          // ti.setExpanded(true);
+          fireFileObjectSelected();
         }
-        // if (!ti.getExpanded()) {
-        // ti.setExpanded(true);
-        fireFileObjectSelected();
         // }
       }
     });
