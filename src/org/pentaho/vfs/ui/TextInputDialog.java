@@ -128,7 +128,14 @@ public class TextInputDialog {
   public static Shell createModalDialogShell(int desiredWidth, int desiredHeight, String title) {
     Shell shell = new Shell(Display.getCurrent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     shell.setText(title);
-    shell.setImage(Display.getCurrent().getActiveShell().getImage());
+    try {
+      shell.setImage(Display.getCurrent().getActiveShell().getImage());
+    } catch (Throwable ignore) {
+      try {
+        shell.setImage(Display.getDefault().getActiveShell().getImage());
+      } catch (Throwable ignore2) {
+      }
+    }
     centerShellOnDisplay(shell, Display.getCurrent(), desiredWidth, desiredHeight);
     return shell;
   }
