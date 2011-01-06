@@ -26,6 +26,8 @@ import org.apache.commons.vfs.FileType;
 import org.apache.commons.vfs.VFS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -38,6 +40,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -48,6 +51,10 @@ import org.pentaho.vfs.messages.Messages;
 
 public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListener, IVfsFileChooser {
 
+  private Image imgFolderUp;
+  private Image imgDelete;
+  private Image imgNewFolder;
+  
   public static final int VFS_DIALOG_OPEN_FILE = 0;
 
   public static final int VFS_DIALOG_OPEN_DIRECTORY = 1;
@@ -271,6 +278,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
           hideCustomPanelChildren();
         }
       });
+      
+      dialog.addDisposeListener(new DisposeListener() {
+        public void widgetDisposed(DisposeEvent arg0) {
+          disposeImages();
+        }
+      });
 
       if (fileDialogMode != VFS_DIALOG_SAVEAS) {
         dialog.setText(Messages.getString("VfsFileChooserDialog.openFile")); //$NON-NLS-1$
@@ -282,6 +295,19 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     }
   }
 
+  private void disposeImages() {
+    if (imgFolderUp != null && !imgFolderUp.isDisposed()) {
+      imgFolderUp.dispose();
+    }
+    if (imgDelete != null && !imgDelete.isDisposed()) {
+      imgDelete.dispose();
+    }
+    if (imgNewFolder != null && !imgNewFolder.isDisposed()) {
+      imgNewFolder.dispose();
+    }
+  }
+
+  
   public FileObject open(Shell applicationShell, FileObject defaultInitialFile, String fileName, String[] fileFilters, String[] fileFilterNames,
       int fileDialogMode) {
     this.defaultInitialFile = defaultInitialFile;
@@ -540,19 +566,19 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     });
     folderUpButton = new Button(chooserToolbarPanel, SWT.PUSH);
     folderUpButton.setToolTipText(Messages.getString("VfsFileChooserDialog.upOneLevel")); //$NON-NLS-1$
-    folderUpButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream("/icons/folderup.jpg"))); //$NON-NLS-1$
+    folderUpButton.setImage(getFolderUpImage(chooserToolbarPanel.getDisplay()));
     gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
     folderUpButton.setLayoutData(gridData);
     folderUpButton.addSelectionListener(this);
     deleteFileButton = new Button(chooserToolbarPanel, SWT.PUSH);
     deleteFileButton.setToolTipText(Messages.getString("VfsFileChooserDialog.deleteFile")); //$NON-NLS-1$
-    deleteFileButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream("/icons/delete.jpg"))); //$NON-NLS-1$
+    deleteFileButton.setImage(getDeleteImage(chooserToolbarPanel.getDisplay()));
     gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
     deleteFileButton.setLayoutData(gridData);
     deleteFileButton.addSelectionListener(this);
     newFolderButton = new Button(chooserToolbarPanel, SWT.PUSH);
     newFolderButton.setToolTipText(Messages.getString("VfsFileChooserDialog.createNewFolder")); //$NON-NLS-1$
-    newFolderButton.setImage(new Image(chooserToolbarPanel.getDisplay(), getClass().getResourceAsStream("/icons/newfolder.jpg"))); //$NON-NLS-1$
+    newFolderButton.setImage(getNewFolderImage(chooserToolbarPanel.getDisplay()));
     gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
     newFolderButton.setLayoutData(gridData);
     newFolderButton.addSelectionListener(this);
@@ -872,5 +898,26 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public void setCustomUIPanel(Composite customUIPanel) {
     this.customUIPanel = customUIPanel;
+  }
+  
+  private Image getFolderUpImage(Display display) {
+    if (imgFolderUp == null || imgFolderUp.isDisposed()) {
+      imgFolderUp = new Image(display, getClass().getResourceAsStream("/icons/folderup.jpg")); //$NON-NLS-1$
+    }
+    return imgFolderUp;
+  }
+  
+  private Image getDeleteImage(Display display) {
+    if (imgDelete == null || imgDelete.isDisposed()) {
+      imgDelete = new Image(display, getClass().getResourceAsStream("/icons/delete.jpg")); //$NON-NLS-1$
+    }
+    return imgDelete;
+  }
+  
+  private Image getNewFolderImage(Display display) {
+    if (imgNewFolder == null || imgNewFolder.isDisposed()) {
+      imgNewFolder = new Image(display, getClass().getResourceAsStream("/icons/newfolder.jpg")); //$NON-NLS-1$
+    }
+    return imgNewFolder;
   }
 }

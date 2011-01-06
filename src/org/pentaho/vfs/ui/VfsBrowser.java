@@ -44,6 +44,8 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -53,6 +55,7 @@ import org.eclipse.swt.events.TreeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
@@ -62,6 +65,10 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.pentaho.vfs.messages.Messages;
 
 public class VfsBrowser extends Composite {
+  private Image imgFolderOpen;
+  private Image imgFolder;
+  private Image imgFile;
+  
   public Tree fileSystemTree = null;
 
   protected FileObject rootFileObject = null;
@@ -247,7 +254,7 @@ public class VfsBrowser extends Composite {
     fileSystemTree.addTreeListener(new TreeListener() {
       public void treeExpanded(TreeEvent e) {
         TreeItem ti = (TreeItem) e.item;
-        ti.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/icons/folderopen.gif"))); //$NON-NLS-1$
+        ti.setImage(getFolderOpenImage(parent.getDisplay()));
         if (ti.getData("isLoaded") == null || !((Boolean) ti.getData("isLoaded")).booleanValue()) { //$NON-NLS-1$ //$NON-NLS-2$
           ti.removeAll();
           populateFileSystemTree((FileObject) ti.getData(), fileSystemTree, ti);
@@ -257,9 +264,26 @@ public class VfsBrowser extends Composite {
 
       public void treeCollapsed(TreeEvent e) {
         TreeItem ti = (TreeItem) e.item;
-        ti.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif"))); //$NON-NLS-1$
+        ti.setImage(getFolderImage(parent.getDisplay()));
       }
     });
+    addDisposeListener(new DisposeListener() {
+      public void widgetDisposed(DisposeEvent arg0) {
+        disposeImages();
+      }
+    });
+  }
+
+  protected void disposeImages() {
+    if (imgFolderOpen != null && !imgFolderOpen.isDisposed()) {
+      imgFolderOpen.dispose();
+    }
+    if (imgFolder != null && !imgFolder.isDisposed()) {
+      imgFolder.dispose();
+    }
+    if (imgFile != null && !imgFile.isDisposed()) {
+      imgFile.dispose();
+    }
   }
 
   public void promptForRenameFile() {
@@ -306,7 +330,7 @@ public class VfsBrowser extends Composite {
     TreeItem newFolderTreeItem = new TreeItem(fileSystemTree.getSelection()[0], SWT.NONE);
     newFolderTreeItem.setData(newFolder);
     newFolderTreeItem.setData("isLoaded", Boolean.TRUE); //$NON-NLS-1$
-    newFolderTreeItem.setImage(new Image(newFolderTreeItem.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif"))); //$NON-NLS-1$
+    newFolderTreeItem.setImage(getFolderImage(newFolderTreeItem.getDisplay()));
     populateTreeItemText(newFolderTreeItem, newFolder);
     fileSystemTree.setSelection(newFolderTreeItem);
     setSelectedFileObject(newFolder);
@@ -364,7 +388,7 @@ public class VfsBrowser extends Composite {
     if (!file.getParent().equals(destFile.getParent())) {
       file.moveTo(destFile);
       TreeItem destTreeItem = new TreeItem(destination, SWT.NONE);
-      destTreeItem.setImage(new Image(source.getDisplay(), getClass().getResourceAsStream("/icons/file.png"))); //$NON-NLS-1$
+      destTreeItem.setImage(getFileImage(source.getDisplay()));
       destTreeItem.setData(destFile);
       destTreeItem.setData("isLoaded", Boolean.FALSE); //$NON-NLS-1$
       populateTreeItemText(destTreeItem, destFile);
@@ -530,7 +554,7 @@ public class VfsBrowser extends Composite {
         }
         myItem.setData("isLoaded", Boolean.TRUE); //$NON-NLS-1$
         if (children != null) {
-          myItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif"))); //$NON-NLS-1$
+          myItem.setImage(getFolderImage(tree.getDisplay()));
         } else if (showFoldersOnly) {
           myItem.removeAll();
           myItem.dispose();
@@ -542,26 +566,26 @@ public class VfsBrowser extends Composite {
             if (fileObj.getType().hasChildren()) {
               TreeItem childTreeItem = new TreeItem(myItem, SWT.NONE);
               populateTreeItemText(childTreeItem, fileObj);
-              childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/file.png"))); //$NON-NLS-1$
+              childTreeItem.setImage(getFileImage(tree.getDisplay()));
               childTreeItem.setData(fileObj);
               childTreeItem.setData("isLoaded", Boolean.FALSE); //$NON-NLS-1$
-              childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif"))); //$NON-NLS-1$
+              childTreeItem.setImage(getFolderImage(tree.getDisplay()));
               TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
               populateTreeItemText(tmpItem, fileObj);
             } else if (fileObj.getType().equals(FileType.FOLDER)) {
               TreeItem childTreeItem = new TreeItem(myItem, SWT.NONE);
               populateTreeItemText(childTreeItem, fileObj);
-              childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/file.png"))); //$NON-NLS-1$
+              childTreeItem.setImage(getFileImage(tree.getDisplay()));
               childTreeItem.setData(fileObj);
               childTreeItem.setData("isLoaded", Boolean.FALSE); //$NON-NLS-1$
-              childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/folder.gif"))); //$NON-NLS-1$
+              childTreeItem.setImage(getFolderImage(tree.getDisplay()));
               TreeItem tmpItem = new TreeItem(childTreeItem, SWT.NONE);
               populateTreeItemText(tmpItem, fileObj);
             } else if (!fileObj.getType().equals(FileType.FOLDER) && !showFoldersOnly) {
               if (isAcceptedByFilter(fileObj.getName())) {
                 TreeItem childTreeItem = new TreeItem(myItem, SWT.NONE);
                 populateTreeItemText(childTreeItem, fileObj);
-                childTreeItem.setImage(new Image(tree.getDisplay(), getClass().getResourceAsStream("/icons/file.png"))); //$NON-NLS-1$
+                childTreeItem.setImage(getFileImage(tree.getDisplay()));
                 childTreeItem.setData(fileObj);
                 childTreeItem.setData("isLoaded", Boolean.FALSE); //$NON-NLS-1$
               }
@@ -681,5 +705,26 @@ public class VfsBrowser extends Composite {
 
   public FileObject getRootFileObject() {
     return rootFileObject;
+  }
+  
+  private Image getFolderOpenImage(Display display) {
+    if (imgFolderOpen == null || imgFolderOpen.isDisposed()) {
+      imgFolderOpen = new Image(display, getClass().getResourceAsStream("/icons/folderopen.gif"));
+    }
+    return imgFolderOpen;
+  }
+  
+  private Image getFolderImage(Display display) {
+    if (imgFolder == null || imgFolder.isDisposed()) {
+      imgFolder = new Image(display, getClass().getResourceAsStream("/icons/folder.gif"));
+    }
+    return imgFolder;
+  }
+  
+  private Image getFileImage(Display display) {
+    if (imgFile == null || imgFile.isDisposed()) {
+      imgFile = new Image(display, getClass().getResourceAsStream("/icons/file.png"));
+    }
+    return imgFile;
   }
 }
