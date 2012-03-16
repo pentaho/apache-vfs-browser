@@ -30,6 +30,7 @@ import org.apache.commons.vfs.FileName;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
+import org.apache.commons.vfs.AllFileSelector;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.dnd.DND;
@@ -156,8 +157,7 @@ public class VfsBrowser extends Composite {
         try {
           MessageBox messageDialog = new MessageBox(getDisplay().getActiveShell(), SWT.YES | SWT.NO);
           messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
-          messageDialog
-              .setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + " " + ((FileObject) fileSystemTree.getSelection()[0].getData()).getName().getBaseName()); //$NON-NLS-1$
+          messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile")); //$NON-NLS-1$
           int status = messageDialog.open();
           if (status == SWT.YES) {
             deleteItem(fileSystemTree.getSelection()[0]);
@@ -165,7 +165,7 @@ public class VfsBrowser extends Composite {
         } catch (FileSystemException e) {
           MessageBox errorDialog = new MessageBox(fileSystemTree.getDisplay().getActiveShell(), SWT.OK);
           errorDialog.setText(Messages.getString("VfsBrowser.error")); //$NON-NLS-1$
-          errorDialog.setMessage(e.getMessage() + "\n" + e.getCause().getMessage());
+          errorDialog.setMessage(e.getMessage());
           errorDialog.open();
         }
       }
@@ -347,6 +347,18 @@ public class VfsBrowser extends Composite {
     if (file.delete()) {
       ti.dispose();
       return true;
+    }
+    // If deleting a file object failed and no exception was kicked in, the selected object is a non-empty folder.
+    // Show a second Confirm message, and perform a recursive delete if OK is pressed.
+    MessageBox messageDialog = new MessageBox(getDisplay().getActiveShell(), SWT.YES | SWT.NO);
+    messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
+    messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFolderWithContents")); //$NON-NLS-1$
+    int status = messageDialog.open();
+    if (status == SWT.YES) {
+      if (file.delete(new AllFileSelector()) != 0){
+        ti.dispose();
+        return true;
+      }
     }
     return false;
   }
