@@ -344,6 +344,7 @@ public class VfsBrowser extends Composite {
 
   public boolean deleteItem(TreeItem ti) throws FileSystemException {
     FileObject file = (FileObject) ti.getData();
+    if (file.getName().getPath().equals("/")) return false; // If the root folder is attempted to delete, do nothing.
     if (file.delete()) {
       ti.dispose();
       return true;
