@@ -660,7 +660,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     } else if (se.widget == deleteFileButton) {
       MessageBox messageDialog = new MessageBox(se.widget.getDisplay().getActiveShell(), SWT.YES | SWT.NO);
       messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
-      messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile") + vfsBrowser.getSelectedFileObject().getName().getBaseName()); //$NON-NLS-1$
+      messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFile")); //$NON-NLS-1$
       int status = messageDialog.open();
       if (status == SWT.YES) {
         try {
@@ -668,7 +668,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         } catch (FileSystemException e) {
           MessageBox errorDialog = new MessageBox(se.widget.getDisplay().getActiveShell(), SWT.OK);
           errorDialog.setText(Messages.getString("VfsFileChooserDialog.error")); //$NON-NLS-1$
-          errorDialog.setMessage(e.getMessage() + "\n" + e.getCause().getMessage());
+          errorDialog.setMessage(e.getMessage());
           errorDialog.open();
         }
       }
