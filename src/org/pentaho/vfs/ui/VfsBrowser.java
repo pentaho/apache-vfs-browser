@@ -351,7 +351,7 @@ public class VfsBrowser extends Composite {
     }
     // If deleting a file object failed and no exception was kicked in, the selected object is a non-empty folder.
     // Show a second Confirm message, and perform a recursive delete if OK is pressed.
-    MessageBox messageDialog = new MessageBox(getDisplay().getActiveShell(), SWT.YES | SWT.NO);
+    MessageBox messageDialog = new MessageBox(fileSystemTree.getShell(), SWT.YES | SWT.NO);
     messageDialog.setText(Messages.getString("VfsFileChooserDialog.confirm")); //$NON-NLS-1$
     messageDialog.setMessage(Messages.getString("VfsFileChooserDialog.deleteFolderWithContents")); //$NON-NLS-1$
     int status = messageDialog.open();
