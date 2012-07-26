@@ -48,6 +48,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public static final int VFS_DIALOG_SAVEAS = 3;
 
+  /**
+   * The File System Manager this dialog will use to resolve files
+   */
+  private FileSystemManager fsm;
+
   public FileObject rootFile;
 
   public FileObject initialFile;
@@ -170,7 +175,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
               if (startFile == null || !startFile.exists()) {
                 startFile = File.listRoots()[0];
               }
-              FileObject dot = VFS.getManager().resolveFile(startFile.toURI().toURL().toExternalForm());
+              FileObject dot = fsm.resolveFile(startFile.toURI().toURL().toExternalForm());
               setRootFile(dot.getFileSystem().getRoot());
               setInitialFile(dot);
               openFileCombo.setText(dot.getName().getURI());
@@ -255,7 +260,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     }
   }
 
-  public VfsFileChooserDialog(Shell applicationShell, FileObject rootFile, FileObject initialFile) {
+  public VfsFileChooserDialog(Shell applicationShell, FileSystemManager fsm, FileObject rootFile, FileObject initialFile) {
+    if (fsm == null) {
+      throw new NullPointerException("A FileSystemManager is required");
+    }
+    this.fsm = fsm;
     this.rootFile = rootFile;
     this.initialFile = initialFile;
     this.applicationShell = applicationShell;

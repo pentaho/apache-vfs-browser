@@ -95,15 +95,19 @@ public class FileChooserTest {
         // } catch (FileSystemException e) {
         // e.printStackTrace();
         // }
-        VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(applicationShell, rootFile, initialFile);
-        fileOpenDialog.addVFSUIPanel(buildHDFSPanel("HDFS", fileOpenDialog));
-        fileOpenDialog.addVFSUIPanel(buildHDFSPanel("S3", fileOpenDialog));
-        fileOpenDialog.addVFSUIPanel(buildHDFSPanel("file", fileOpenDialog));
-        FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE);
-        if (selectedFile != null) {
-          System.out.println(Messages.getString("FileChooserTest.selectedFileEquals") + selectedFile.getName()); //$NON-NLS-1$
-        } else {
-          System.out.println(Messages.getString("FileChooserTest.noFileSelected")); //$NON-NLS-1$
+        try {
+          VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(applicationShell, VFS.getManager(), rootFile, initialFile);
+          fileOpenDialog.addVFSUIPanel(buildHDFSPanel("HDFS", fileOpenDialog));
+          fileOpenDialog.addVFSUIPanel(buildHDFSPanel("S3", fileOpenDialog));
+          fileOpenDialog.addVFSUIPanel(buildHDFSPanel("file", fileOpenDialog));
+          FileObject selectedFile = fileOpenDialog.open(applicationShell, null, filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE);
+          if (selectedFile != null) {
+            System.out.println(Messages.getString("FileChooserTest.selectedFileEquals") + selectedFile.getName()); //$NON-NLS-1$
+          } else {
+            System.out.println(Messages.getString("FileChooserTest.noFileSelected")); //$NON-NLS-1$
+          }
+        } catch (FileSystemException ex) {
+          ex.printStackTrace();
         }
       }
     });
@@ -121,13 +125,17 @@ public class FileChooserTest {
         } catch (FileSystemException e) {
           e.printStackTrace();
         }
-        VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(applicationShell, rootFile, initialFile);
-        FileObject selectedFile = fileOpenDialog.open(applicationShell, 
-            Messages.getString("FileChooserTest.untitled"), filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_SAVEAS); //$NON-NLS-1$
-        if (selectedFile != null) {
-          System.out.println(Messages.getString("FileChooserTest.selectedFileEquals") + selectedFile.getName()); //$NON-NLS-1$
-        } else {
-          System.out.println(Messages.getString("FileChooserTest.noFileSelected")); //$NON-NLS-1$
+        try {
+          VfsFileChooserDialog fileOpenDialog = new VfsFileChooserDialog(applicationShell, VFS.getManager(), rootFile, initialFile);
+          FileObject selectedFile = fileOpenDialog.open(applicationShell, 
+              Messages.getString("FileChooserTest.untitled"), filters, filterNames, VfsFileChooserDialog.VFS_DIALOG_SAVEAS); //$NON-NLS-1$
+          if (selectedFile != null) {
+            System.out.println(Messages.getString("FileChooserTest.selectedFileEquals") + selectedFile.getName()); //$NON-NLS-1$
+          } else {
+            System.out.println(Messages.getString("FileChooserTest.noFileSelected")); //$NON-NLS-1$
+          }
+        } catch (FileSystemException ex) {
+          ex.printStackTrace();
         }
       }
     });
