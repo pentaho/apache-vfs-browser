@@ -331,7 +331,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   public FileObject open(Shell applicationShell, String fileName, String[] fileFilters, String[] fileFilterNames, int fileDialogMode, boolean returnUserAuthenticatedFile) {
     if(this.defaultInitialFile != null && this.defaultInitialFile.getName() != null && this.defaultInitialFile.getName().getScheme() != null) {
       return open(applicationShell, "", this.defaultInitialFile.getName().getScheme(),
-          false, fileName, fileFilters, fileFilterNames, fileDialogMode, returnUserAuthenticatedFile);
+          true, fileName, fileFilters, fileFilterNames, fileDialogMode, returnUserAuthenticatedFile);
     } else {
       return open(applicationShell, "", "file", true, fileName, fileFilters, fileFilterNames, fileDialogMode, returnUserAuthenticatedFile);
     }
