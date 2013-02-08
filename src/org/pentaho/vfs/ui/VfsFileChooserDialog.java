@@ -458,8 +458,10 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
             }
 
             // build up the url with user/pass on it
+            int port = urlFileName.getPort();
+            String portString = (port < 1) ? "" : (":" + port);
             String urlWithUserPass = urlFileName.getScheme() + "://" + user + ":" + pass +
-                "@" + urlFileName.getHostName() + urlFileName.getPath();
+                "@" + urlFileName.getHostName() + portString + urlFileName.getPath();
 
             try {
               returnFile = currentPanel.resolveFile(urlWithUserPass);
