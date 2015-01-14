@@ -1035,4 +1035,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     }
     return imgNewFolder;
   }
+  
+  public CustomVfsUiPanel getCurrentPanel() {
+    return currentPanel;
+  }
 }
