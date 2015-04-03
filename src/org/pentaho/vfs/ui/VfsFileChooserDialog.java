@@ -304,6 +304,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         dialog.setText(Messages.getString("VfsFileChooserDialog.saveAs")); //$NON-NLS-1$
       }
       dialog.setLayout(new GridLayout());
+      dialog.setBackgroundMode( SWT.INHERIT_FORCE );
+      dialog.setBackground( dialog.getDisplay().getSystemColor( SWT.COLOR_WHITE ));
       createCustomUIPanel(dialog);
     }
   }
