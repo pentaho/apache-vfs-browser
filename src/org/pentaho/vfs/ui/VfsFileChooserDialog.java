@@ -101,6 +101,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   String initialScheme = "file";
   String[] schemeRestrictions = null;
   boolean showFileScheme = true;
+  boolean showLocation;
 
   public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES = new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
       UserAuthenticationData.PASSWORD };
@@ -128,10 +129,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     lookInLabel.setText(Messages.getString("VfsFileChooserDialog.LookIn"));
     gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
     lookInLabel.setLayoutData(gridData);
+    lookInLabel.setVisible( showLocation );
     
     customUIPicker = new Combo(comboPanel, SWT.READ_ONLY);
     gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false);
     customUIPicker.setLayoutData(gridData);
+    customUIPicker.setVisible( showLocation );
 
     customUIPicker.addSelectionListener(new SelectionListener() {
 
@@ -363,6 +366,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public FileObject open(Shell applicationShell, String[] schemeRestrictions, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
       String[] fileFilterNames, boolean returnUserAuthenticatedFile, int fileDialogMode) {
+    return open( applicationShell,  schemeRestrictions,  initialScheme,  showFileScheme,  fileName,  fileFilters, fileFilterNames, returnUserAuthenticatedFile, 
+        fileDialogMode, true );
+  }
+  
+  public FileObject open(Shell applicationShell, String[] schemeRestrictions, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
+      String[] fileFilterNames, boolean returnUserAuthenticatedFile, int fileDialogMode, boolean showLocation) {
 
     this.fileDialogMode = fileDialogMode;
     this.fileFilters = fileFilters;
@@ -371,6 +380,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     this.showFileScheme = showFileScheme;
     this.initialScheme = initialScheme;
     this.schemeRestrictions = schemeRestrictions;
+    this.showLocation = showLocation;
 
     if (defaultInitialFile != null && rootFile == null) {
       try {
