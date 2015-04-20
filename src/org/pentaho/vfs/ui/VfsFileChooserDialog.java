@@ -99,8 +99,9 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   Combo customUIPicker;
   Shell fakeShell = new Shell();
   String initialScheme = "file";
-  String schemeRestriction = null;
+  String[] schemeRestrictions = null;
   boolean showFileScheme = true;
+  boolean showLocation;
 
   public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES = new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
       UserAuthenticationData.PASSWORD };
@@ -128,10 +129,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     lookInLabel.setText(Messages.getString("VfsFileChooserDialog.LookIn"));
     gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
     lookInLabel.setLayoutData(gridData);
+    lookInLabel.setVisible( showLocation );
     
     customUIPicker = new Combo(comboPanel, SWT.READ_ONLY);
     gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false);
     customUIPicker.setLayoutData(gridData);
+    customUIPicker.setVisible( showLocation );
 
     customUIPicker.addSelectionListener(new SelectionListener() {
 
@@ -165,21 +168,16 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       CustomVfsUiPanel localPanel = new CustomVfsUiPanel("file", "Local", this, SWT.None) {
         public void activate() {
           try {
-            boolean activate = rootFile == null && initialFile == null;
-            if (!activate) {
-              activate = rootFile.getName().getScheme().equals("file");
+            File startFile = new File(System.getProperty("user.home"));
+            if (startFile == null || !startFile.exists()) {
+              startFile = File.listRoots()[0];
             }
-            if (activate) {
-              File startFile = new File(System.getProperty("user.home"));
-              if (startFile == null || !startFile.exists()) {
-                startFile = File.listRoots()[0];
-              }
-              FileObject dot = fsm.resolveFile(startFile.toURI().toURL().toExternalForm());
-              setRootFile(dot.getFileSystem().getRoot());
-              setInitialFile(dot);
-              openFileCombo.setText(dot.getName().getURI());
-              resolveVfsBrowser();
-            }
+            FileObject dot = fsm.resolveFile(startFile.toURI().toURL().toExternalForm());
+            rootFile = dot.getFileSystem().getRoot();
+            selectedFile = rootFile;
+            setInitialFile(selectedFile);
+            openFileCombo.setText(selectedFile.getName().getURI());
+            resolveVfsBrowser();
           } catch (Throwable t) {
           }
         }
@@ -223,8 +221,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     ArrayList<String> customNames = new ArrayList<String>();
     for (int i = 0; i < customUIPanels.size(); i++) {
       CustomVfsUiPanel panel = customUIPanels.get(i);
-      if (panel.getVfsScheme().equalsIgnoreCase("file") || schemeRestriction == null || "".equals(schemeRestriction)
-          || panel.getVfsScheme().equalsIgnoreCase(schemeRestriction)) {
+      if (panel.getVfsScheme().equalsIgnoreCase("file") || schemeRestrictions == null
+          || isRestrictedTo( panel.getVfsScheme() )) {
         if (panel.getVfsScheme().equalsIgnoreCase("file") && !showFileScheme) {
           continue;
         }
@@ -257,6 +255,19 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         }
       }
     }
+  }
+
+  private boolean isRestrictedTo( String schema ) {
+    boolean isRestrictedTo = false;
+    if ( schemeRestrictions != null ) {
+      for ( String restriction : schemeRestrictions ) {
+        if ( restriction.equalsIgnoreCase( schema ) ) {
+          isRestrictedTo = true;
+          break;
+        }
+      }
+    }
+    return isRestrictedTo;
   }
 
   public VfsFileChooserDialog(Shell applicationShell, FileSystemManager fsm, FileObject rootFile, FileObject initialFile) {
@@ -296,6 +307,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         dialog.setText(Messages.getString("VfsFileChooserDialog.saveAs")); //$NON-NLS-1$
       }
       dialog.setLayout(new GridLayout());
+      dialog.setBackgroundMode( SWT.INHERIT_FORCE );
+      dialog.setBackground( dialog.getDisplay().getSystemColor( SWT.COLOR_WHITE ));
       createCustomUIPanel(dialog);
     }
   }
@@ -343,13 +356,31 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public FileObject open(Shell applicationShell, String schemeRestriction, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
       String[] fileFilterNames, int fileDialogMode, boolean returnUserAuthenticatedFile) {
+    String[] restrictions = null;
+    if ( schemeRestriction != null && !schemeRestriction.trim().equals( "" )) {
+      restrictions = new String[1];
+      restrictions[0] = schemeRestriction;
+    }
+    return open(applicationShell, restrictions, initialScheme, showFileScheme, fileName, fileFilters, fileFilterNames, returnUserAuthenticatedFile, fileDialogMode);
+  }
+
+  public FileObject open(Shell applicationShell, String[] schemeRestrictions, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
+      String[] fileFilterNames, boolean returnUserAuthenticatedFile, int fileDialogMode) {
+    return open( applicationShell,  schemeRestrictions,  initialScheme,  showFileScheme,  fileName,  fileFilters, fileFilterNames, returnUserAuthenticatedFile, 
+        fileDialogMode, true );
+  }
+  
+  public FileObject open(Shell applicationShell, String[] schemeRestrictions, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
+      String[] fileFilterNames, boolean returnUserAuthenticatedFile, int fileDialogMode, boolean showLocation) {
+
     this.fileDialogMode = fileDialogMode;
     this.fileFilters = fileFilters;
     this.fileFilterNames = fileFilterNames;
     this.applicationShell = applicationShell;
-    this.schemeRestriction = schemeRestriction;
     this.showFileScheme = showFileScheme;
     this.initialScheme = initialScheme;
+    this.schemeRestrictions = schemeRestrictions;
+    this.showLocation = showLocation;
 
     if (defaultInitialFile != null && rootFile == null) {
       try {
@@ -362,11 +393,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
     createDialog(applicationShell);
 
-    populateCustomUIPanel(dialog);
     // create our file chooser tool bar, contains parent folder combo and various controls
     createToolbarPanel(dialog);
     // create our vfs browser component
     createVfsBrowser(dialog);
+    populateCustomUIPanel( dialog );
     if (fileDialogMode == VFS_DIALOG_SAVEAS) {
       createFileNamePanel(dialog, fileName);
     } else {
@@ -378,10 +409,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
     // set the initial file selection
     try {
-      vfsBrowser.selectTreeItemByFileObject(initialFile != null ? initialFile : rootFile, true);
-      updateParentFileCombo(initialFile != null ? initialFile : rootFile);
-      setSelectedFile(initialFile != null ? initialFile : rootFile);
-      openFileCombo.setText(initialFile != null ? initialFile.getName().getURI() : rootFile.getName().getURI());
+      if ( initialFile != null || rootFile != null ) {
+        vfsBrowser.selectTreeItemByFileObject( initialFile != null ? initialFile : rootFile, true );
+        updateParentFileCombo( initialFile != null ? initialFile : rootFile );
+        setSelectedFile( initialFile != null ? initialFile : rootFile );
+        openFileCombo.setText( initialFile != null ? initialFile.getName().getURI() : rootFile.getName().getURI() );
+      }
     } catch (FileSystemException e) {
       MessageBox box = new MessageBox(dialog.getShell());
       box.setText(Messages.getString("VfsFileChooserDialog.error")); //$NON-NLS-1$
@@ -435,7 +468,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       // put user/pass on the filename so it comes out in the getUri call.
       if(!returnUserAuthenticatedFile) {
         // make sure to put the user/pass on the url if it's not there
-        if(returnFile.getName() instanceof URLFileName) {
+        if(returnFile != null && returnFile.getName() instanceof URLFileName) {
           URLFileName urlFileName = (URLFileName)returnFile.getName();
           if(urlFileName.getUserName() == null || urlFileName.getPassword() == null) {
             // set it
@@ -942,7 +975,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     } catch (FileSystemException e) {
       displayMessageBox(SWT.OK, Messages.getString("VfsFileChooserDialog.error"), e.getMessage());
     }
-    if (newRoot != null && !newRoot.equals(vfsBrowser.getRootFileObject())) {
+    //if (newRoot != null && !newRoot.equals(vfsBrowser.getRootFileObject())) {
+    if ( newRoot != null ) {
       vfsBrowser.resetVfsRoot(newRoot);
     }
   }
@@ -976,8 +1010,10 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public void setSelectedFile(FileObject selectedFile) {
     this.selectedFile = selectedFile;
-    this.openFileCombo.setText(selectedFile.getName().getURI());
-    resolveVfsBrowser();
+    if ( selectedFile != null ) {
+      this.openFileCombo.setText( selectedFile.getName().getURI() );
+      resolveVfsBrowser();
+    }
   }
 
   public FileObject resolveFile(String fileUri, FileSystemOptions opts) throws FileSystemException {
