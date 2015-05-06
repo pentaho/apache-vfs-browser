@@ -96,6 +96,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public Composite customUIPanel;
   List<CustomVfsUiPanel> customUIPanels = new ArrayList<CustomVfsUiPanel>();
+  Composite comboPanel;
   Combo customUIPicker;
   Shell fakeShell = new Shell();
   String initialScheme = "file";
@@ -120,7 +121,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     customUIPanel.setLayoutData(gridData);
     customUIPanel.setLayout(new GridLayout(1, false));
 
-    Composite comboPanel = new Composite(customUIPanel, SWT.NONE);
+    comboPanel = new Composite( customUIPanel, SWT.NONE );
     comboPanel.setLayoutData(gridData);
     comboPanel.setLayout(new GridLayout(2, false));
     comboPanel.setData("donotremove");
@@ -129,13 +130,15 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     lookInLabel.setText(Messages.getString("VfsFileChooserDialog.LookIn"));
     gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
     lookInLabel.setLayoutData(gridData);
-    lookInLabel.setVisible( showLocation );
     
     customUIPicker = new Combo(comboPanel, SWT.READ_ONLY);
     gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false);
     customUIPicker.setLayoutData(gridData);
-    customUIPicker.setVisible( showLocation );
 
+    if ( !showLocation ) {
+      comboPanel.setParent( fakeShell );
+    }
+    
     customUIPicker.addSelectionListener(new SelectionListener() {
 
       public void widgetSelected(SelectionEvent event) {
@@ -393,6 +396,12 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
     createDialog(applicationShell);
 
+    if ( !showLocation ) {
+      comboPanel.setParent( fakeShell );
+    } else {
+      comboPanel.setParent( customUIPanel );
+    }
+    
     // create our file chooser tool bar, contains parent folder combo and various controls
     createToolbarPanel(dialog);
     // create our vfs browser component
