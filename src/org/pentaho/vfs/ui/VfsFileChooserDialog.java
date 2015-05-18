@@ -397,6 +397,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     this.showLocation = showLocation;
     this.showCustomUI = showCustomUI;
 
+    FileObject tmpInitialFile = initialFile;
+
     if (defaultInitialFile != null && rootFile == null) {
       try {
         rootFile = defaultInitialFile.getFileSystem().getRoot();
@@ -434,6 +436,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     // create our ok/cancel buttons
     createButtonPanel(dialog);
 
+    initialFile = tmpInitialFile;
     // set the initial file selection
     try {
       if ( initialFile != null || rootFile != null ) {
