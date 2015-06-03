@@ -96,12 +96,14 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public Composite customUIPanel;
   List<CustomVfsUiPanel> customUIPanels = new ArrayList<CustomVfsUiPanel>();
+  Composite comboPanel;
   Combo customUIPicker;
   Shell fakeShell = new Shell();
   String initialScheme = "file";
   String[] schemeRestrictions = null;
   boolean showFileScheme = true;
   boolean showLocation;
+  boolean showCustomUI = true;
 
   public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES = new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
       UserAuthenticationData.PASSWORD };
@@ -120,7 +122,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     customUIPanel.setLayoutData(gridData);
     customUIPanel.setLayout(new GridLayout(1, false));
 
-    Composite comboPanel = new Composite(customUIPanel, SWT.NONE);
+    comboPanel = new Composite( customUIPanel, SWT.NONE );
     comboPanel.setLayoutData(gridData);
     comboPanel.setLayout(new GridLayout(2, false));
     comboPanel.setData("donotremove");
@@ -129,13 +131,19 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     lookInLabel.setText(Messages.getString("VfsFileChooserDialog.LookIn"));
     gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
     lookInLabel.setLayoutData(gridData);
-    lookInLabel.setVisible( showLocation );
     
     customUIPicker = new Combo(comboPanel, SWT.READ_ONLY);
     gridData = new GridData(SWT.LEFT, SWT.CENTER, true, false);
     customUIPicker.setLayoutData(gridData);
-    customUIPicker.setVisible( showLocation );
 
+    if ( !showLocation ) {
+      comboPanel.setParent( fakeShell );
+    }
+
+    if ( !showCustomUI ) {
+      customUIPanel.setParent( fakeShell );
+    }
+    
     customUIPicker.addSelectionListener(new SelectionListener() {
 
       public void widgetSelected(SelectionEvent event) {
@@ -369,9 +377,15 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     return open( applicationShell,  schemeRestrictions,  initialScheme,  showFileScheme,  fileName,  fileFilters, fileFilterNames, returnUserAuthenticatedFile, 
         fileDialogMode, true );
   }
-  
-  public FileObject open(Shell applicationShell, String[] schemeRestrictions, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
-      String[] fileFilterNames, boolean returnUserAuthenticatedFile, int fileDialogMode, boolean showLocation) {
+
+  public FileObject open( Shell applicationShell, String[] schemeRestrictions, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
+      String[] fileFilterNames, boolean returnUserAuthenticatedFile, int fileDialogMode, boolean showLocation ) {
+    return open( applicationShell,  schemeRestrictions,  initialScheme,  showFileScheme,  fileName,  fileFilters, fileFilterNames, returnUserAuthenticatedFile, 
+        fileDialogMode, true, true );
+  }
+
+  public FileObject open( Shell applicationShell, String[] schemeRestrictions, String initialScheme, boolean showFileScheme, String fileName, String[] fileFilters,
+      String[] fileFilterNames, boolean returnUserAuthenticatedFile, int fileDialogMode, boolean showLocation, boolean showCustomUI ) {
 
     this.fileDialogMode = fileDialogMode;
     this.fileFilters = fileFilters;
@@ -381,6 +395,9 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     this.initialScheme = initialScheme;
     this.schemeRestrictions = schemeRestrictions;
     this.showLocation = showLocation;
+    this.showCustomUI = showCustomUI;
+
+    FileObject tmpInitialFile = initialFile;
 
     if (defaultInitialFile != null && rootFile == null) {
       try {
@@ -392,6 +409,18 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     }
 
     createDialog(applicationShell);
+
+    if ( !showLocation ) {
+      comboPanel.setParent( fakeShell );
+    } else {
+      comboPanel.setParent( customUIPanel );
+    }
+
+    if ( !showCustomUI ) {
+      customUIPanel.setParent( fakeShell );
+    } else {
+      customUIPanel.setParent( dialog );
+    }
 
     // create our file chooser tool bar, contains parent folder combo and various controls
     createToolbarPanel(dialog);
@@ -407,6 +436,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
     // create our ok/cancel buttons
     createButtonPanel(dialog);
 
+    initialFile = tmpInitialFile;
     // set the initial file selection
     try {
       if ( initialFile != null || rootFile != null ) {
