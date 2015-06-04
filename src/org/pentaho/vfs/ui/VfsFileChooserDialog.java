@@ -267,9 +267,9 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   private boolean isRestrictedTo( String schema ) {
     boolean isRestrictedTo = false;
-    if ( schemeRestrictions != null ) {
+    if ( schemeRestrictions != null && schema != null ) {
       for ( String restriction : schemeRestrictions ) {
-        if ( restriction.equalsIgnoreCase( schema ) ) {
+        if ( schema.equalsIgnoreCase( restriction ) ) {
           isRestrictedTo = true;
           break;
         }
