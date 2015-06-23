@@ -13,9 +13,9 @@
 
 package org.pentaho.vfs.ui;
 
-import org.apache.commons.vfs.*;
-import org.apache.commons.vfs.impl.DefaultFileSystemConfigBuilder;
-import org.apache.commons.vfs.provider.URLFileName;
+import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
+import org.apache.commons.vfs2.provider.URLFileName;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.*;
