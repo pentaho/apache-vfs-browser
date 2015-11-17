@@ -20,7 +20,7 @@
     <dependencies defaultconf="default->default">
     
         <!--  external dependencies -->
-        <dependency org="commons-collections" name="commons-collections" rev="3.2"/>
+        <dependency org="commons-collections" name="commons-collections" rev="3.2.2"/>
         <dependency org="commons-httpclient" name="commons-httpclient"   rev="3.0.1"  transitive="false"/>
         <dependency org="commons-io"          name="commons-io"          rev="1.4"/>
         <dependency org="commons-logging"     name="commons-logging"     rev="1.1"    transitive="false"/>
