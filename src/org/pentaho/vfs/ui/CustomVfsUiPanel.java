@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 - 2013 Pentaho Corporation.  All rights reserved.
+* Copyright 2002 - 2016 Pentaho Corporation.  All rights reserved.
 * 
 * This software was developed by Pentaho Corporation and is provided under the terms
 * of the Mozilla Public License, Version 1.1, or any later version. You may not use
@@ -27,28 +27,29 @@ public class CustomVfsUiPanel extends Composite {
   private String vfsScheme;
   private String vfsSchemeDisplayText;
 
-  public CustomVfsUiPanel(String vfsScheme, String vfsSchemeDisplayText, VfsFileChooserDialog vfsFileChooserDialog, int flags) {
-    super(vfsFileChooserDialog.getCustomUIPanel(), flags);
+  public CustomVfsUiPanel( String vfsScheme, String vfsSchemeDisplayText, VfsFileChooserDialog vfsFileChooserDialog,
+                           int flags ) {
+    super( vfsFileChooserDialog.getCustomUIPanel(), flags );
     this.vfsFileChooserDialog = vfsFileChooserDialog;
     this.vfsScheme = vfsScheme;
     this.vfsSchemeDisplayText = vfsSchemeDisplayText;
-    GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-    setLayoutData(gridData);
-    setLayout(new GridLayout(1, false));
+    GridData gridData = new GridData( SWT.FILL, SWT.CENTER, true, false );
+    setLayoutData( gridData );
+    setLayout( new GridLayout( 1, false ) );
   }
 
   public void activate() {
   }
-  
+
   public VfsFileChooserDialog getVfsFileChooserDialog() {
     return vfsFileChooserDialog;
   }
 
-  public void setVfsFileChooserDialog(VfsFileChooserDialog vfsFileChooserDialog) {
+  public void setVfsFileChooserDialog( VfsFileChooserDialog vfsFileChooserDialog ) {
     this.vfsFileChooserDialog = vfsFileChooserDialog;
   }
 
-  public void setVfsScheme(String vfsScheme) {
+  public void setVfsScheme( String vfsScheme ) {
     this.vfsScheme = vfsScheme;
   }
 
@@ -60,26 +61,27 @@ public class CustomVfsUiPanel extends Composite {
     return vfsSchemeDisplayText;
   }
 
-  public void setVfsSchemeDisplayText(String vfsSchemeDisplayText) {
+  public void setVfsSchemeDisplayText( String vfsSchemeDisplayText ) {
     this.vfsSchemeDisplayText = vfsSchemeDisplayText;
   }
 
-  public FileObject resolveFile(String fileUri, FileSystemOptions opts) throws FileSystemException {
+  public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
     FileSystem fs = null;
-    if(vfsFileChooserDialog.rootFile != null) {
+    if ( vfsFileChooserDialog.rootFile != null ) {
       fs = vfsFileChooserDialog.rootFile.getFileSystem();
     }
-    if(fs != null) {
-      if(opts == null) {
-        return fs.getFileSystemManager().resolveFile(fileUri);
+    if ( fs != null ) {
+      if ( opts == null ) {
+        return fs.getFileSystemManager().resolveFile( fileUri );
       } else {
-        fs.getFileSystemManager().resolveFile(fileUri, opts);
+        fs.getFileSystemManager().resolveFile( fileUri, opts );
       }
     }
     return null;
   }
-  public FileObject resolveFile(String fileUri) throws FileSystemException {
-    return resolveFile(fileUri, null);
+
+  public FileObject resolveFile( String fileUri ) throws FileSystemException {
+    return resolveFile( fileUri, null );
   }
 
 }
