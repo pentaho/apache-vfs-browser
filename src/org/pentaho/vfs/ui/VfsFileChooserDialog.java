@@ -236,9 +236,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   private void hideCustomPanelChildren() {
     Control[] children = customUIPanel.getChildren();
     for ( Control child : children ) {
-      if ( child instanceof Composite && "donotremove".equals( ( (Composite) child ).getData() ) ) {
-        // skip
-      } else {
+      if ( !( child instanceof Composite ) || !"donotremove".equals( ( child ).getData() ) ) {
         child.setParent( fakeShell );
       }
     }
@@ -566,8 +564,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
             // build up the url with user/pass on it
             int port = urlFileName.getPort();
             String portString = ( port < 1 ) ? "" : ( ":" + port );
-            String urlWithUserPass = urlFileName.getScheme() + "://" + user + ":" + pass +
-              "@" + urlFileName.getHostName() + portString + urlFileName.getPath();
+            String urlWithUserPass = urlFileName.getScheme() + "://" + user + ":" + pass
+              + "@" + urlFileName.getHostName() + portString + urlFileName.getPath();
 
             try {
               returnFile = currentPanel.resolveFile( urlWithUserPass );
@@ -926,8 +924,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       if ( text == null ) {
         text = defaultText;
       }
-      File fileRoots[] = File.listRoots();
-      String roots[] = new String[ fileRoots.length ];
+      File[] fileRoots = File.listRoots();
+      String[] roots = new String[ fileRoots.length ];
       for ( int i = 0; i < roots.length; i++ ) {
         try {
           roots[ i ] = fileRoots[ i ].toURI().toURL().toExternalForm();
@@ -974,17 +972,17 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         parentFileObject = parentFileObject.getParent();
       }
 
-      File roots[] = File.listRoots();
+      File[] roots = File.listRoots();
       if ( currentPanel != null ) {
         for ( int i = 0; i < roots.length; i++ ) {
           parentChain.add( currentPanel.resolveFile( roots[ i ].getAbsolutePath() ) );
         }
       }
 
-      String items[] = new String[ parentChain.size() ];
+      String[] items = new String[ parentChain.size() ];
       int idx = 0;
       for ( int i = parentChain.size() - 1; i >= 0; i-- ) {
-        items[ idx++ ] = ( (FileObject) parentChain.get( i ) ).getName().getURI();
+        items[ idx++ ] = ( parentChain.get( i ) ).getName().getURI();
       }
 
       openFileCombo.setItems( items );
@@ -1041,8 +1039,6 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
         dialog.dispose();
       }
 
-    } else {
-      // anything?
     }
   }
 
