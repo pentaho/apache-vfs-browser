@@ -13,17 +13,39 @@
 
 package org.pentaho.vfs.ui;
 
-import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.Capability;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.UserAuthenticationData;
+import org.apache.commons.vfs2.UserAuthenticator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.provider.URLFileName;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.pentaho.vfs.messages.Messages;
 
 import java.io.File;
@@ -46,11 +68,6 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   public static final int VFS_DIALOG_OPEN_FILE_OR_DIRECTORY = 2;
 
   public static final int VFS_DIALOG_SAVEAS = 3;
-
-  /**
-   * The File System Manager this dialog will use to resolve files
-   */
-  private FileSystemManager fsm;
 
   public FileObject rootFile;
 
@@ -104,6 +121,8 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   boolean showFileScheme = true;
   boolean showLocation;
   boolean showCustomUI = true;
+
+  final VfsResolver resolver;
 
   public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES =
     new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
@@ -181,7 +200,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
             if ( startFile == null || !startFile.exists() ) {
               startFile = File.listRoots()[ 0 ];
             }
-            FileObject dot = fsm.resolveFile( startFile.toURI().toURL().toExternalForm() );
+            FileObject dot = resolver.resolveFile( startFile.toURI().toURL().toExternalForm() );
             rootFile = dot.getFileSystem().getRoot();
             selectedFile = rootFile;
             setInitialFile( selectedFile );
@@ -281,13 +300,15 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   public VfsFileChooserDialog( Shell applicationShell, FileSystemManager fsm, FileObject rootFile,
                                FileObject initialFile ) {
-    if ( fsm == null ) {
-      throw new NullPointerException( "A FileSystemManager is required" );
-    }
-    this.fsm = fsm;
+    this( applicationShell, new DelegatingResolver( fsm ), rootFile, initialFile );
+  }
+
+  public VfsFileChooserDialog( Shell applicationShell, VfsResolver resolver, FileObject rootFile,
+                               FileObject initialFile ) {
     this.rootFile = rootFile;
     this.initialFile = initialFile;
     this.applicationShell = applicationShell;
+    this.resolver = resolver;
     createDialog( applicationShell );
   }
 

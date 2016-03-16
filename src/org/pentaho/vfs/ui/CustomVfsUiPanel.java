@@ -13,9 +13,9 @@
 
 package org.pentaho.vfs.ui;
 
-import org.apache.commons.vfs2.*;
-import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
-import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -66,18 +66,7 @@ public class CustomVfsUiPanel extends Composite {
   }
 
   public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
-    FileSystem fs = null;
-    if ( vfsFileChooserDialog.rootFile != null ) {
-      fs = vfsFileChooserDialog.rootFile.getFileSystem();
-    }
-    if ( fs != null ) {
-      if ( opts == null ) {
-        return fs.getFileSystemManager().resolveFile( fileUri );
-      } else {
-        fs.getFileSystemManager().resolveFile( fileUri, opts );
-      }
-    }
-    return null;
+    return ( vfsFileChooserDialog == null ) ? null : vfsFileChooserDialog.resolver.resolveFile( fileUri, opts );
   }
 
   public FileObject resolveFile( String fileUri ) throws FileSystemException {
