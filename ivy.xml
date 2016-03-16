@@ -28,11 +28,13 @@
         <dependency org="org.apache.commons"  name="commons-vfs2"        rev="2.1-20150824"    transitive="false" />
         <dependency org="javax.mail"          name="mail"                rev="1.3.2"/>
         <dependency org="oro"                 name="oro"                 rev="2.0.8"/>
-        <dependency org="junit"               name="junit"               rev="4.5" conf="test->default" />
         
         <dependency org="org.eclipse.swt"     name="swt-win32"           rev="3.3.0.3346" conf="default-swt-windows->default" />
         <dependency org="org.eclipse.swt"     name="swt-linux"           rev="3.3.0.3346" conf="default-swt-linux->default"/>
         <dependency org="org.eclipse.swt"     name="swt-osx"             rev="3.3.0.3346" conf="default-swt-mac->default"/>
+
+        <dependency org="junit"               name="junit"               rev="4.12" conf="test->default" />
+        <dependency org="org.mockito"         name="mockito-all"         rev="1.9.5" conf="test->default"/>
         
     </dependencies>
     
