@@ -22,6 +22,14 @@
     <tag>HEAD</tag>
   </scm>
 
+  <licenses>
+    <license>
+      <name>Mozilla Public License, Version 1.1</name>
+      <url>https://www.mozilla.org/media/MPL/1.1/index.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <properties>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-httpclient.version>3.0.1</commons-httpclient.version>
