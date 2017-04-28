@@ -29,6 +29,8 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
@@ -55,7 +57,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListener, IVfsFileChooser {
+public class VfsFileChooserDialog implements SelectionListener, MouseListener, VfsBrowserListener, IVfsFileChooser {
 
   private Image imgFolderUp;
   private Image imgDelete;
@@ -91,11 +93,11 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   // Button changeRootButton = null;
 
-  public Button folderUpButton = null;
+  public Label folderUpButton = null;
 
-  public Button deleteFileButton = null;
+  public Label deleteFileButton = null;
 
-  public Button newFolderButton = null;
+  public Label newFolderButton = null;
 
   public Combo openFileCombo = null;
 
@@ -745,24 +747,24 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       }
 
     } );
-    folderUpButton = new Button( chooserToolbarPanel, SWT.PUSH );
+    folderUpButton = new Label( chooserToolbarPanel, 0 );
     folderUpButton.setToolTipText( Messages.getString( "VfsFileChooserDialog.upOneLevel" ) ); //$NON-NLS-1$
     folderUpButton.setImage( getFolderUpImage( chooserToolbarPanel.getDisplay() ) );
     gridData = new GridData( SWT.CENTER, SWT.CENTER, false, false );
     folderUpButton.setLayoutData( gridData );
-    folderUpButton.addSelectionListener( this );
-    deleteFileButton = new Button( chooserToolbarPanel, SWT.PUSH );
+    folderUpButton.addMouseListener( this );
+    deleteFileButton = new Label( chooserToolbarPanel, 0 );
     deleteFileButton.setToolTipText( Messages.getString( "VfsFileChooserDialog.deleteFile" ) ); //$NON-NLS-1$
     deleteFileButton.setImage( getDeleteImage( chooserToolbarPanel.getDisplay() ) );
     gridData = new GridData( SWT.CENTER, SWT.CENTER, false, false );
     deleteFileButton.setLayoutData( gridData );
-    deleteFileButton.addSelectionListener( this );
-    newFolderButton = new Button( chooserToolbarPanel, SWT.PUSH );
+    deleteFileButton.addMouseListener( this );
+    newFolderButton = new Label( chooserToolbarPanel, 0 );
     newFolderButton.setToolTipText( Messages.getString( "VfsFileChooserDialog.createNewFolder" ) ); //$NON-NLS-1$
     newFolderButton.setImage( getNewFolderImage( chooserToolbarPanel.getDisplay() ) );
     gridData = new GridData( SWT.CENTER, SWT.CENTER, false, false );
     newFolderButton.setLayoutData( gridData );
-    newFolderButton.addSelectionListener( this );
+    newFolderButton.addMouseListener( this );
   }
 
   public void okPressed() {
@@ -829,36 +831,6 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
     } else if ( se.widget == okButton ) {
       okPressed();
-    } else if ( se.widget == folderUpButton ) {
-      try {
-        FileObject newRoot = vfsBrowser.getSelectedFileObject().getParent();
-        if ( newRoot != null ) {
-          vfsBrowser.resetVfsRoot( newRoot );
-          vfsBrowser.setSelectedFileObject( newRoot );
-          // make sure access/secret keys not displayed in plain text
-          //          String str = folderURL.setFolderURL(newRoot.getName().getURI());
-          openFileCombo.setText( newRoot.getName().getFriendlyURI() );
-        }
-      } catch ( Exception e ) {
-        // top of root
-      }
-    } else if ( se.widget == newFolderButton ) {
-      promptForNewFolder();
-    } else if ( se.widget == deleteFileButton ) {
-      MessageBox messageDialog = new MessageBox( se.widget.getDisplay().getActiveShell(), SWT.YES | SWT.NO );
-      messageDialog.setText( Messages.getString( "VfsFileChooserDialog.confirm" ) ); //$NON-NLS-1$
-      messageDialog.setMessage( Messages.getString( "VfsFileChooserDialog.deleteFile" ) ); //$NON-NLS-1$
-      int status = messageDialog.open();
-      if ( status == SWT.YES ) {
-        try {
-          vfsBrowser.deleteSelectedItem();
-        } catch ( FileSystemException e ) {
-          MessageBox errorDialog = new MessageBox( se.widget.getDisplay().getActiveShell(), SWT.OK );
-          errorDialog.setText( Messages.getString( "VfsFileChooserDialog.error" ) ); //$NON-NLS-1$
-          errorDialog.setMessage( e.getMessage() );
-          errorDialog.open();
-        }
-      }
       // } else if (se.widget == changeRootButton) {
       // promptForNewVfsRoot();
     } else if ( se.widget == fileFilterCombo ) {
@@ -883,6 +855,49 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
       hideCustomPanelChildren();
       dialog.dispose();
     }
+  }
+
+  @Override
+  public void mouseDown( MouseEvent se ) {
+    if ( se.widget == folderUpButton ) {
+      try {
+        FileObject newRoot = vfsBrowser.getSelectedFileObject().getParent();
+        if ( newRoot != null ) {
+          vfsBrowser.resetVfsRoot( newRoot );
+          vfsBrowser.setSelectedFileObject( newRoot );
+          // make sure access/secret keys not displayed in plain text
+          // String str = folderURL.setFolderURL(newRoot.getName().getURI());
+          openFileCombo.setText( newRoot.getName().getFriendlyURI() );
+        }
+      } catch ( Exception e ) {
+        // top of root
+      }
+    } else if ( se.widget == newFolderButton ) {
+      promptForNewFolder();
+    } else if ( se.widget == deleteFileButton ) {
+      MessageBox messageDialog = new MessageBox( se.widget.getDisplay().getActiveShell(), SWT.YES | SWT.NO );
+      messageDialog.setText( Messages.getString( "VfsFileChooserDialog.confirm" ) ); //$NON-NLS-1$
+      messageDialog.setMessage( Messages.getString( "VfsFileChooserDialog.deleteFile" ) ); //$NON-NLS-1$
+      int status = messageDialog.open();
+      if ( status == SWT.YES ) {
+        try {
+          vfsBrowser.deleteSelectedItem();
+        } catch ( FileSystemException e ) {
+          MessageBox errorDialog = new MessageBox( se.widget.getDisplay().getActiveShell(), SWT.OK );
+          errorDialog.setText( Messages.getString( "VfsFileChooserDialog.error" ) ); //$NON-NLS-1$
+          errorDialog.setMessage( e.getMessage() );
+          errorDialog.open();
+        }
+      }
+    }
+  }
+
+  @Override
+  public void mouseUp( MouseEvent arg0 ) {
+  }
+
+  @Override
+  public void mouseDoubleClick( MouseEvent arg0 ) {
   }
 
   public void promptForNewFolder() {
@@ -1139,21 +1154,21 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
 
   private Image getFolderUpImage( Display display ) {
     if ( imgFolderUp == null || imgFolderUp.isDisposed() ) {
-      imgFolderUp = new Image( display, getClass().getResourceAsStream( "/icons/folderup.jpg" ) ); //$NON-NLS-1$
+      imgFolderUp = new Image( display, getClass().getResourceAsStream( "/icons/folderup.png" ) ); //$NON-NLS-1$
     }
     return imgFolderUp;
   }
 
   private Image getDeleteImage( Display display ) {
     if ( imgDelete == null || imgDelete.isDisposed() ) {
-      imgDelete = new Image( display, getClass().getResourceAsStream( "/icons/delete.jpg" ) ); //$NON-NLS-1$
+      imgDelete = new Image( display, getClass().getResourceAsStream( "/icons/generic-delete.png" ) ); //$NON-NLS-1$
     }
     return imgDelete;
   }
 
   private Image getNewFolderImage( Display display ) {
     if ( imgNewFolder == null || imgNewFolder.isDisposed() ) {
-      imgNewFolder = new Image( display, getClass().getResourceAsStream( "/icons/newfolder.jpg" ) ); //$NON-NLS-1$
+      imgNewFolder = new Image( display, getClass().getResourceAsStream( "/icons/Add.png" ) ); //$NON-NLS-1$
     }
     return imgNewFolder;
   }
