@@ -56,6 +56,9 @@ import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class VfsFileChooserDialog implements SelectionListener, MouseListener, VfsBrowserListener, IVfsFileChooser {
 
@@ -70,6 +73,8 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
   public static final int VFS_DIALOG_OPEN_FILE_OR_DIRECTORY = 2;
 
   public static final int VFS_DIALOG_SAVEAS = 3;
+
+  private static final String  FILE_SCHEME = "file";
 
   public FileObject rootFile;
 
@@ -114,11 +119,13 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
   public FileObject defaultInitialFile = null;
 
   public Composite customUIPanel;
-  List<CustomVfsUiPanel> customUIPanels = new ArrayList<CustomVfsUiPanel>();
+
+  Map<Integer, CustomVfsUiPanel> customUIPanelsOrderedMap = new TreeMap<Integer, CustomVfsUiPanel>();
+
   Composite comboPanel;
   Combo customUIPicker;
   Shell fakeShell = new Shell();
-  String initialScheme = "file";
+  String initialScheme = FILE_SCHEME;
   String[] schemeRestrictions = null;
   boolean showFileScheme = true;
   boolean showLocation;
@@ -130,12 +137,30 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
     new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
       UserAuthenticationData.PASSWORD };
 
+  /**
+   * It will add the panel to ordered list started reverse from Integer.MAX_VALUE
+   * 
+   * please check the {@link #addVFSUIPanelOrdered(Integer, CustomVfsUiPanel)}
+   */
   public void addVFSUIPanel( CustomVfsUiPanel panel ) {
-    customUIPanels.add( panel );
+    int orderForNewPanel = Integer.MAX_VALUE;
+    while ( customUIPanelsOrderedMap.get( orderForNewPanel ) != null ) {
+      orderForNewPanel--;
+    }
+    addVFSUIPanel( orderForNewPanel, panel );
+  }
+
+  /**
+   * It will add the panel with order to use order for get name of file system
+   * 
+   * <b>Important note</b> if we already have the panel with order which you are trying  to add it will be replaced new panel!
+   */
+  public void addVFSUIPanel( Integer order,  CustomVfsUiPanel panel ) {
+    customUIPanelsOrderedMap.put( order, panel );
   }
 
   public List<CustomVfsUiPanel> getCustomVfsUiPanels() {
-    return customUIPanels;
+    return customUIPanelsOrderedMap.values().stream().collect( Collectors.toList() );
   }
 
   public void createCustomUIPanel( final Shell dialog ) {
@@ -188,14 +213,14 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
     } );
 
     boolean createdLocal = false;
-    for ( CustomVfsUiPanel panel : customUIPanels ) {
-      if ( panel.getVfsScheme().equals( "file" ) ) {
+    for ( CustomVfsUiPanel panel : getCustomVfsUiPanels() ) {
+      if ( panel.getVfsScheme().equals( FILE_SCHEME ) ) {
         createdLocal = true;
       }
     }
 
     if ( !createdLocal ) {
-      CustomVfsUiPanel localPanel = new CustomVfsUiPanel( "file", "Local", this, SWT.None ) {
+      CustomVfsUiPanel localPanel = new CustomVfsUiPanel( FILE_SCHEME, "Local", this, SWT.None ) {
         public void activate() {
           try {
             File startFile = new File( System.getProperty( "user.home" ) );
@@ -209,17 +234,18 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
             openFileCombo.setText( selectedFile.getName().getURI() );
             resolveVfsBrowser();
           } catch ( Throwable t ) {
+            t.printStackTrace();
           }
         }
       };
-      addVFSUIPanel( localPanel );
+      addVFSUIPanel( 100, localPanel );
     }
   }
 
   private void selectCustomUI() {
     hideCustomPanelChildren();
     String desiredScheme = customUIPicker.getText();
-    for ( CustomVfsUiPanel panel : customUIPanels ) {
+    for ( CustomVfsUiPanel panel : getCustomVfsUiPanels() ) {
       if ( desiredScheme.equals( panel.getVfsSchemeDisplayText() ) ) {
         panel.setParent( customUIPanel );
         panel.activate();
@@ -227,7 +253,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       }
     }
     if ( currentPanel == null ) {
-      currentPanel = customUIPanels.get( 0 );
+      currentPanel = getCustomVfsUiPanels().get( 0 );
       currentPanel.setParent( customUIPanel );
       currentPanel.activate();
     }
@@ -247,11 +273,11 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
 
   public void populateCustomUIPanel( Shell dialog ) {
     ArrayList<String> customNames = new ArrayList<String>();
-    for ( int i = 0; i < customUIPanels.size(); i++ ) {
-      CustomVfsUiPanel panel = customUIPanels.get( i );
-      if ( panel.getVfsScheme().equalsIgnoreCase( "file" ) || schemeRestrictions == null
+    for ( int i = 0; i < getCustomVfsUiPanels().size(); i++ ) {
+      CustomVfsUiPanel panel = getCustomVfsUiPanels().get( i );
+      if ( panel.getVfsScheme().equalsIgnoreCase( FILE_SCHEME ) || schemeRestrictions == null
         || isRestrictedTo( panel.getVfsScheme() ) ) {
-        if ( panel.getVfsScheme().equalsIgnoreCase( "file" ) && !showFileScheme ) {
+        if ( panel.getVfsScheme().equalsIgnoreCase( FILE_SCHEME ) && !showFileScheme ) {
           continue;
         }
         customNames.add( panel.getVfsSchemeDisplayText() );
@@ -265,13 +291,13 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
     if ( customNames.size() == 0 ) {
       customUIPanel.setParent( fakeShell );
     } else {
-      if ( customNames.size() == 1 && "file".equals( customNames.get( 0 ) ) ) {
+      if ( customNames.size() == 1 && FILE_SCHEME.equals( customNames.get( 0 ) ) ) {
         customUIPanel.setParent( fakeShell );
       } else {
         String initialSchemeDisplayText = initialScheme;
-        for ( int i = 0; i < customUIPanels.size(); i++ ) {
-          if ( customUIPanels.get( i ).getVfsScheme().equalsIgnoreCase( initialScheme ) ) {
-            initialSchemeDisplayText = customUIPanels.get( i ).getVfsSchemeDisplayText();
+        for ( int i = 0; i < getCustomVfsUiPanels().size(); i++ ) {
+          if ( getCustomVfsUiPanels().get( i ).getVfsScheme().equalsIgnoreCase( initialScheme ) ) {
+            initialSchemeDisplayText = getCustomVfsUiPanels().get( i ).getVfsSchemeDisplayText();
             break;
           }
         }
@@ -383,7 +409,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       return open( applicationShell, "", this.defaultInitialFile.getName().getScheme(),
         true, fileName, fileFilters, fileFilterNames, fileDialogMode, returnUserAuthenticatedFile );
     } else {
-      return open( applicationShell, "", "file", true, fileName, fileFilters, fileFilterNames, fileDialogMode,
+      return open( applicationShell, "", FILE_SCHEME, true, fileName, fileFilters, fileFilterNames, fileDialogMode,
         returnUserAuthenticatedFile );
     }
   }
@@ -805,6 +831,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
         return;
       }
     } catch ( FileSystemException e ) {
+      e.printStackTrace();
     }
 
     okPressed = true;
@@ -827,6 +854,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
         FileObject newRoot = currentPanel.resolveFile( getSelectedFile().getName().getURI() );
         vfsBrowser.resetVfsRoot( newRoot );
       } catch ( FileSystemException e ) {
+        e.printStackTrace();
       }
 
     } else if ( se.widget == okButton ) {
@@ -1134,8 +1162,8 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
   }
 
   private CustomVfsUiPanel getPanelFromFileUri( String fileUri ) {
-    if ( customUIPanels != null ) {
-      for ( CustomVfsUiPanel panel : customUIPanels ) {
+    if ( getCustomVfsUiPanels() != null ) {
+      for ( CustomVfsUiPanel panel : getCustomVfsUiPanels() ) {
         if ( fileUri.startsWith( panel.getVfsScheme() ) ) {
           return panel;
         }
