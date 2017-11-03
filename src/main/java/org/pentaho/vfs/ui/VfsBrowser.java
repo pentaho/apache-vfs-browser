@@ -295,7 +295,7 @@ public class VfsBrowser extends Composite {
         text = defaultText;
       }
       TextInputDialog textDialog =
-        new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 100 );
+        new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 120 );
       text = textDialog.open();
       if ( text != null && !"".equals( text ) ) { //$NON-NLS-1$
         try {

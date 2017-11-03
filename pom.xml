@@ -9,7 +9,7 @@
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-vfs-browser</artifactId>
-  <version>9.0.0.0-423</version>
+  <version>9.0.0.0-423-21</version>
   <name>Apache VFS Browser</name>
   <description></description>
   <licenses>
@@ -23,6 +23,7 @@
     <developerConnection>scm:git:git@github.com:pentaho/apache-vfs-browser.git</developerConnection>
   </scm>
   <properties>
+    <rap.version>3.11.0</rap.version>
     <org.eclipse.swt.version>4.6</org.eclipse.swt.version>
     <commons-io.version>1.4</commons-io.version>
     <mail.version>1.6.1</mail.version>
@@ -33,6 +34,24 @@
     <commons-collections.version>3.2.2</commons-collections.version>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.rap</groupId>
+      <artifactId>org.eclipse.rap.rwt</artifactId>
+      <version>${rap.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>commons-collections</groupId>
       <artifactId>commons-collections</artifactId>
@@ -86,12 +105,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.swt</groupId>
-      <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
-      <version>${org.eclipse.swt.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>${mockito-all.version}</version>
@@ -115,5 +128,13 @@
       </snapshots>
     </repository>
   </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub OWNER Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/HiromuHota/apache-vfs-browser</url>
+    </repository>
+  </distributionManagement>
 
 </project>

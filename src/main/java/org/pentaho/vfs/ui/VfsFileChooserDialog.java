@@ -23,6 +23,7 @@ import org.apache.commons.vfs2.UserAuthenticationData;
 import org.apache.commons.vfs2.UserAuthenticator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.provider.URLFileName;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.DisposeEvent;
@@ -48,6 +49,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.di.core.Const;
 import org.pentaho.vfs.messages.Messages;
 
 import java.io.File;
@@ -225,18 +227,39 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       CustomVfsUiPanel localPanel = new CustomVfsUiPanel( FILE_SCHEME, "Local", this, SWT.None ) {
         public void activate() {
           try {
-            File startFile = new File( System.getProperty( "user.home" ) );
+            File startFile = new File( getKettleUserDataDirectory() );
             if ( startFile == null || !startFile.exists() ) {
               startFile = File.listRoots()[ 0 ];
             }
             FileObject dot = resolver.resolveFile( startFile.toURI().toURL().toExternalForm() );
-            rootFile = dot.getFileSystem().getRoot();
+            rootFile = resolver.resolveFile( getKettleUserDataDirectory() );
             selectedFile = rootFile;
             setInitialFile( selectedFile );
             openFileCombo.setText( selectedFile.getName().getURI() );
             resolveVfsBrowser();
           } catch ( Throwable t ) {
             t.printStackTrace();
+          }
+        }
+
+        /*
+         * Copied from kettle-core to break the dependency on the patched kettle-core
+         * so that this project can be built using the official kettle-core
+         */
+        private String getKettleUserDataDirectory() {
+          String path = Const.getKettleDirectory();
+          String user = getUser();
+          if ( user != null ) {
+            path += Const.FILE_SEPARATOR + "users" + Const.FILE_SEPARATOR + user;
+          }
+          return path + Const.FILE_SEPARATOR + "data";
+        }
+
+        private String getUser() {
+          try {
+            return RWT.getRequest().getRemoteUser();
+          } catch ( Exception e ) { // when accessed from background threads (e.g., when the webSpoon server is starting)
+            return null;
           }
         }
       };
