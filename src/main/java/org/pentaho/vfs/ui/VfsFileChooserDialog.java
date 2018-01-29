@@ -1096,7 +1096,7 @@ public class VfsFileChooserDialog implements SelectionListener, VfsBrowserListen
   public void setSelectedFile( FileObject selectedFile ) {
     this.selectedFile = selectedFile;
     if ( selectedFile != null ) {
-      this.openFileCombo.setText( selectedFile.getName().getURI() );
+      this.openFileCombo.setText( selectedFile.getName().getFriendlyURI() );
       resolveVfsBrowser();
     }
   }
