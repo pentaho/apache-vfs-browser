@@ -29,7 +29,7 @@
     <commons-net.version>1.4.1</commons-net.version>
     <mockito-all.version>1.9.5</mockito-all.version>
     <commons-logging.version>1.1</commons-logging.version>
-    <commons-vfs2.version>2.1-20150824</commons-vfs2.version>
+    <commons-vfs2.version>2.2</commons-vfs2.version>
     <oro.version>2.0.8</oro.version>
     <commons-collections.version>3.2.2</commons-collections.version>
   </properties>
