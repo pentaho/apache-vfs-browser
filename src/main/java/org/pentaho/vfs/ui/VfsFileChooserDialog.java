@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2002 - 2018 Hitachi Vantara.  All rights reserved.
 * 
 * This software was developed by Hitachi Vantara and is provided under the terms
 * of the Mozilla Public License, Version 1.1, or any later version. You may not use
@@ -75,6 +75,8 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
   public static final int VFS_DIALOG_SAVEAS = 3;
 
   private static final String  FILE_SCHEME = "file";
+
+  private static final String MAPRFS_SCHEME = "maprfs";
 
   public FileObject rootFile;
 
@@ -278,6 +280,9 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       if ( panel.getVfsScheme().equalsIgnoreCase( FILE_SCHEME ) || schemeRestrictions == null
         || isRestrictedTo( panel.getVfsScheme() ) ) {
         if ( panel.getVfsScheme().equalsIgnoreCase( FILE_SCHEME ) && !showFileScheme ) {
+          continue;
+        }
+        if ( panel.getVfsScheme().equalsIgnoreCase( MAPRFS_SCHEME ) ) {
           continue;
         }
         customNames.add( panel.getVfsSchemeDisplayText() );
