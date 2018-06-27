@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2002 - 2018 Hitachi Vantara.  All rights reserved.
 * 
 * This software was developed by Hitachi Vantara and is provided under the terms
 * of the Mozilla Public License, Version 1.1, or any later version. You may not use
@@ -202,21 +202,23 @@ public class VfsBrowser extends Composite {
 
     fileSystemTree.addMouseListener(new MouseListener() {
       public void mouseDoubleClick(MouseEvent e) {
-        TreeItem ti = fileSystemTree.getSelection()[0];
-        selectedFileObject = (FileObject) ti.getData();
-        try {
-          if (allowDoubleClickOpenFolder || selectedFileObject.getType().equals(FileType.FILE)) {
-            fireFileObjectDoubleClicked();
-          } else {
-            ti.setExpanded(!ti.getExpanded());
-            fireFileObjectSelected();
+        if ( fileSystemTree.getSelection() != null && fileSystemTree.getSelection().length > 0 ) {
+          TreeItem ti = fileSystemTree.getSelection()[ 0 ];
+          selectedFileObject = (FileObject) ti.getData();
+          try {
+            if ( allowDoubleClickOpenFolder || selectedFileObject.getType().equals( FileType.FILE ) ) {
+              fireFileObjectDoubleClicked();
+            } else {
+              ti.setExpanded( !ti.getExpanded() );
+              fireFileObjectSelected();
+            }
+          } catch ( FileSystemException ex ) {
+            // this simply means that we don't know if the selected file was a file or a folder, likely, we don't have permission
+            MessageBox mb = new MessageBox( parent.getShell() );
+            mb.setText( Messages.getString( "VfsBrowser.cannotSelectObject" ) ); //$NON-NLS-1$
+            mb.setMessage( ex.getMessage() );
+            mb.open();
           }
-        } catch (FileSystemException ex) {
-          // this simply means that we don't know if the selected file was a file or a folder, likely, we don't have permission
-          MessageBox mb = new MessageBox(parent.getShell());
-          mb.setText(Messages.getString("VfsBrowser.cannotSelectObject")); //$NON-NLS-1$
-          mb.setMessage(ex.getMessage());
-          mb.open();
         }
       }
 
