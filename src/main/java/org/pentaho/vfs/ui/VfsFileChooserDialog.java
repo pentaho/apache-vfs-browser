@@ -78,6 +78,8 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
 
   private static final String MAPRFS_SCHEME = "maprfs";
 
+  private boolean firstTime = false;
+
   public FileObject rootFile;
 
   public FileObject initialFile;
@@ -245,6 +247,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
   }
 
   private void selectCustomUI() {
+    firstTime = customUIPicker.getSelectionIndex() != 0;
     hideCustomPanelChildren();
     String desiredScheme = customUIPicker.getText();
     for ( CustomVfsUiPanel panel : getCustomVfsUiPanels() ) {
@@ -736,7 +739,16 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
     openFileCombo = new Combo( chooserToolbarPanel, SWT.BORDER );
     gridData = new GridData( SWT.FILL, SWT.CENTER, true, false );
     openFileCombo.setLayoutData( gridData );
-    openFileCombo.addSelectionListener( this );
+    openFileCombo.addSelectionListener( new SelectionListener() {
+      @Override
+      public void widgetSelected( SelectionEvent selectionEvent ) {
+        gotoDirectory();
+      }
+      @Override
+      public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
+        gotoDirectory();
+      }
+    } );
     openFileCombo.addKeyListener( new KeyListener() {
 
       public void keyPressed( KeyEvent event ) {
@@ -759,21 +771,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
 
       public void keyReleased( KeyEvent event ) {
         if ( event.keyCode == SWT.CR || event.keyCode == SWT.KEYPAD_CR ) {
-          try {
-            // resolve the selected folder (without displaying access/secret keys in plain text)
-            //            FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(folderURL
-            // .getFolderURL(openFileCombo.getText()));
-            //            FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile
-            // (getSelectedFile().getName().getURI());
-            FileObject newRoot = currentPanel.resolveFile( openFileCombo.getText() );
-
-            vfsBrowser.resetVfsRoot( newRoot );
-          } catch ( FileSystemException e ) {
-            MessageBox errorDialog = new MessageBox( vfsBrowser.getDisplay().getActiveShell(), SWT.OK );
-            errorDialog.setText( Messages.getString( "VfsFileChooserDialog.error" ) ); //$NON-NLS-1$
-            errorDialog.setMessage( e.getMessage() );
-            errorDialog.open();
-          }
+          gotoDirectory();
         }
       }
 
@@ -1208,5 +1206,21 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
 
   public CustomVfsUiPanel getCurrentPanel() {
     return currentPanel;
+  }
+
+  private void gotoDirectory() {
+    try {
+      if ( !firstTime ) {
+        FileObject newRoot = currentPanel.resolveFile( openFileCombo.getText() );
+        vfsBrowser.resetVfsRoot( newRoot );
+      }
+    } catch ( FileSystemException e ) {
+      MessageBox errorDialog = new MessageBox( vfsBrowser.getDisplay().getActiveShell(), SWT.OK );
+      errorDialog.setText( Messages.getString( "VfsFileChooserDialog.error" ) ); //$NON-NLS-1$
+      errorDialog.setMessage( e.getMessage() );
+      errorDialog.open();
+    } finally {
+      firstTime = false;
+    }
   }
 }
