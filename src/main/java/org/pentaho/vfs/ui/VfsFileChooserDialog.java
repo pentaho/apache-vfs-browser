@@ -856,7 +856,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
         // resolve the selected folder (without displaying access/secret keys in plain text)
         //        FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(folderURL
         // .getFolderURL(openFileCombo.getText()));
-        FileObject newRoot = currentPanel.resolveFile( getSelectedFile().getName().getURI() );
+        FileObject newRoot = currentPanel.resolveFile( openFileCombo.getText() );
         vfsBrowser.resetVfsRoot( newRoot );
       } catch ( FileSystemException e ) {
         e.printStackTrace();
