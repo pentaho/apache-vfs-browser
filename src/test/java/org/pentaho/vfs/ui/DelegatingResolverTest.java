@@ -45,6 +45,6 @@ public class DelegatingResolverTest {
     FileSystemOptions opts = new FileSystemOptions();
     new DelegatingResolver( mock ).resolveFile( "url", opts );
 
-    verify( mock ).resolveFile( eq( "url" ), eq( opts ) );
+    verify( mock ).resolveFile( eq( "urle" ), eq( opts ) );
   }
 }
