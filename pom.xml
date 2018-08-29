@@ -9,7 +9,7 @@
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-vfs-browser</artifactId>
-  <version>9.0.0.0-93</version>
+  <version>9.0.0.0-94</version>
   <name>Apache VFS Browser</name>
   <description></description>
   <licenses>
