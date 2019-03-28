@@ -1,6 +1,6 @@
 # Apache VFS Browser #
 
-How to build
+How to build my thing
 --------------
 
 Apache VFS Browser uses the maven framework. 
