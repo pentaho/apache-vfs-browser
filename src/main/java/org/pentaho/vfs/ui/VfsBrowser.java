@@ -86,8 +86,7 @@ public class VfsBrowser extends Composite {
   protected HashMap fileObjectChildrenMap = new HashMap();
 
   public VfsBrowser( final Composite parent, int style, final FileObject rootFileObject, String fileFilter,
-                     final boolean showFoldersOnly,
-                     final boolean allowDoubleClickOpenFolder ) {
+                     final boolean showFoldersOnly, final boolean allowDoubleClickOpenFolder ) {
     super( parent, style );
     this.showFoldersOnly = showFoldersOnly;
     this.allowDoubleClickOpenFolder = allowDoubleClickOpenFolder;
@@ -214,8 +213,7 @@ public class VfsBrowser extends Composite {
               fireFileObjectSelected();
             }
           } catch ( FileSystemException ex ) {
-            // this simply means that we don't know if the selected file was a file or a folder, likely, we don't
-            // have permission
+            // this simply means that we don't know if the selected file was a file or a folder, likely, we don't have permission
             MessageBox mb = new MessageBox( parent.getShell() );
             mb.setText( Messages.getString( "VfsBrowser.cannotSelectObject" ) ); //$NON-NLS-1$
             mb.setMessage( ex.getMessage() );
@@ -242,8 +240,7 @@ public class VfsBrowser extends Composite {
         TreeItem ti = (TreeItem) e.item;
         if ( ti != null ) {
           selectedFileObject = (FileObject) ( ti.getData() );
-          if ( ti.getData( "isLoaded" ) == null || !( (Boolean) ti.getData( "isLoaded" ) )
-            .booleanValue() ) { //$NON-NLS-1$ //$NON-NLS-2$
+          if ( ti.getData( "isLoaded" ) == null || !( (Boolean) ti.getData( "isLoaded" ) ).booleanValue() ) {
             ti.removeAll();
             populateFileSystemTree( selectedFileObject, fileSystemTree, ti );
           }
@@ -258,8 +255,7 @@ public class VfsBrowser extends Composite {
       public void treeExpanded( TreeEvent e ) {
         TreeItem ti = (TreeItem) e.item;
         ti.setImage( getFolderOpenImage( parent.getDisplay() ) );
-        if ( ti.getData( "isLoaded" ) == null || !( (Boolean) ti.getData( "isLoaded" ) )
-          .booleanValue() ) { //$NON-NLS-1$ //$NON-NLS-2$
+        if ( ti.getData( "isLoaded" ) == null || !( (Boolean) ti.getData( "isLoaded" ) ).booleanValue() ) {
           ti.removeAll();
           populateFileSystemTree( (FileObject) ti.getData(), fileSystemTree, ti );
         }
@@ -299,7 +295,7 @@ public class VfsBrowser extends Composite {
         text = defaultText;
       }
       TextInputDialog textDialog =
-        new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 100 ); //$NON-NLS-1$
+        new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 100 );
       text = textDialog.open();
       if ( text != null && !"".equals( text ) ) { //$NON-NLS-1$
         try {
@@ -425,8 +421,7 @@ public class VfsBrowser extends Composite {
       // we need to turn the filter into a proper regex
       // for example *.txt would be .*\.txt
       // and *.* would be .*\..*
-      filter = filter.replaceAll( "\\.", "\\." )
-        .replaceAll( "\\*", ".*" ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+      filter = filter.replaceAll( "\\.", "\\." ).replaceAll( "\\*", ".*" );
     }
     this.fileFilter = filter;
   }
@@ -441,8 +436,7 @@ public class VfsBrowser extends Composite {
     }
   }
 
-  public void selectTreeItemByFileObject( FileObject selectedFileObject, boolean expandSelection )
-    throws FileSystemException {
+  public void selectTreeItemByFileObject( FileObject selectedFileObject, boolean expandSelection ) throws FileSystemException {
     // note that this method WILL cause the tree to load files from VFS
     // go through selectedFileObject's parent elements until we hit the root
     if ( selectedFileObject == null ) {
@@ -465,8 +459,8 @@ public class VfsBrowser extends Composite {
         FileObject obj = (FileObject) selectedFileObjectParentList.get( i );
         treeItem = findTreeItemByName( treeItem, obj.getName().getBaseName() );
         if ( treeItem != null && !treeItem.isDisposed() ) {
-          if ( treeItem.getData() == null || treeItem.getData( "isLoaded" ) == null || !( (Boolean) treeItem
-            .getData( "isLoaded" ) ).booleanValue() ) { //$NON-NLS-1$ //$NON-NLS-2$
+          if ( treeItem.getData() == null || treeItem.getData( "isLoaded" ) == null
+            || !( (Boolean) treeItem.getData( "isLoaded" ) ).booleanValue() ) {
             treeItem.removeAll();
             populateFileSystemTree( obj, fileSystemTree, treeItem );
           }
@@ -485,11 +479,10 @@ public class VfsBrowser extends Composite {
       DateFormat df = SimpleDateFormat.getDateTimeInstance();
       Date date = new Date( fileObject.getContent().getLastModifiedTime() );
       if ( contentType == null ) {
-        contentType = ""; //$NON-NLS-1$
+        contentType = "";
       }
       ti.setText( new String[] { fileObject.getName().getBaseName(), contentType, df.format( date ) } );
     } catch ( Throwable t ) {
-      // t.printStackTrace();
       ti.setText( fileObject.getName().getBaseName() );
     }
   }
@@ -632,8 +625,8 @@ public class VfsBrowser extends Composite {
   }
 
   public boolean isAcceptedByFilter( FileName fileName ) {
-    if ( fileFilter != null && !"".equals( fileFilter ) ) { //$NON-NLS-1$
-      StringTokenizer st = new StringTokenizer( fileFilter, ";" ); //$NON-NLS-1$
+    if ( fileFilter != null && !"".equals( fileFilter ) ) {
+      StringTokenizer st = new StringTokenizer( fileFilter, ";" );
       while ( st.hasMoreTokens() ) {
         String token = st.nextToken();
         if ( fileName.getFriendlyURI().matches( token ) ) {
@@ -646,11 +639,9 @@ public class VfsBrowser extends Composite {
   }
 
   public TreeItem findTreeItemByName( TreeItem treeItem, String itemName ) {
-    if ( treeItem == null
-      || ( treeItem.getData() != null && (
-      ( (FileObject) treeItem.getData() ).getName().getBaseName().equals( itemName ) || ( (FileObject) treeItem
-        .getData() )
-        .getName().getFriendlyURI().equals( itemName ) ) ) ) {
+    if ( treeItem == null || ( treeItem.getData() != null
+      && ( ( (FileObject) treeItem.getData() ).getName().getBaseName().equals( itemName )
+      || ( (FileObject) treeItem.getData() ).getName().getFriendlyURI().equals( itemName ) ) ) ) {
       return treeItem;
     }
     TreeItem[] children = treeItem.getItems();
@@ -730,6 +721,14 @@ public class VfsBrowser extends Composite {
 
   public FileObject getRootFileObject() {
     return rootFileObject;
+  }
+
+  public void clearFileChildren( String parent ) {
+    fileObjectChildrenMap.remove( parent );
+  }
+
+  public void clearFileChildren() {
+    fileObjectChildrenMap.clear();
   }
 
   private Image getFolderOpenImage( Display display ) {
