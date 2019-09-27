@@ -545,13 +545,15 @@ public class VfsBrowser extends Composite {
             Arrays.sort( children, new Comparator<FileObject>() {
               public int compare( FileObject o1, FileObject o2 ) {
                 try {
-                  if ( o1.getType().equals( o2.getType() ) ) {
+                  FileType o1FileType = o1.getType();
+                  FileType o2FileType = o2.getType();
+                  if ( o1FileType.equals( o2FileType ) ) {
                     return o1.getName().getBaseName().compareTo( o2.getName().getBaseName() );
                   }
-                  if ( o1.getType().equals( FileType.FOLDER ) ) {
+                  if ( o1FileType.equals( FileType.FOLDER ) ) {
                     return -1;
                   }
-                  if ( o1.getType().equals( FileType.FILE ) ) {
+                  if ( o1FileType.equals( FileType.FILE ) ) {
                     return 1;
                   }
                 } catch ( Exception e ) {
@@ -579,7 +581,8 @@ public class VfsBrowser extends Composite {
         for ( int i = 0; children != null && i < children.length; i++ ) {
           FileObject fileObj = children[ i ];
           try {
-            if ( fileObj.getType().hasChildren() ) {
+            FileType fileType = fileObj.getType();
+            if ( fileType.hasChildren() || fileType.equals( FileType.FOLDER ) ) {
               TreeItem childTreeItem = new TreeItem( myItem, SWT.NONE );
               populateTreeItemText( childTreeItem, fileObj );
               childTreeItem.setImage( getFileImage( tree.getDisplay() ) );
@@ -588,16 +591,7 @@ public class VfsBrowser extends Composite {
               childTreeItem.setImage( getFolderImage( tree.getDisplay() ) );
               TreeItem tmpItem = new TreeItem( childTreeItem, SWT.NONE );
               populateTreeItemText( tmpItem, fileObj );
-            } else if ( fileObj.getType().equals( FileType.FOLDER ) ) {
-              TreeItem childTreeItem = new TreeItem( myItem, SWT.NONE );
-              populateTreeItemText( childTreeItem, fileObj );
-              childTreeItem.setImage( getFileImage( tree.getDisplay() ) );
-              childTreeItem.setData( fileObj );
-              childTreeItem.setData( "isLoaded", Boolean.FALSE ); //$NON-NLS-1$
-              childTreeItem.setImage( getFolderImage( tree.getDisplay() ) );
-              TreeItem tmpItem = new TreeItem( childTreeItem, SWT.NONE );
-              populateTreeItemText( tmpItem, fileObj );
-            } else if ( !fileObj.getType().equals( FileType.FOLDER ) && !showFoldersOnly ) {
+            } else if ( !fileType.equals( FileType.FOLDER ) && !showFoldersOnly ) {
               if ( isAcceptedByFilter( fileObj.getName() ) ) {
                 TreeItem childTreeItem = new TreeItem( myItem, SWT.NONE );
                 populateTreeItemText( childTreeItem, fileObj );
