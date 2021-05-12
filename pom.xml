@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-    <version>9.0.0.0-423</version>
+    <version>9.3.0.0-SNAPSHOT</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-vfs-browser</artifactId>
-  <version>9.0.0.0-423-22</version>
+  <version>9.3.0.0-SNAPSHOT</version>
   <name>Apache VFS Browser</name>
   <description></description>
   <licenses>
@@ -29,7 +29,6 @@
     <mail.version>1.6.1</mail.version>
     <commons-net.version>1.4.1</commons-net.version>
     <mockito-all.version>1.9.5</mockito-all.version>
-    <commons-vfs2.version>2.2</commons-vfs2.version>
     <oro.version>2.0.8</oro.version>
     <commons-collections.version>3.2.2</commons-collections.version>
   </properties>
@@ -83,7 +82,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2</artifactId>
-      <version>${commons-vfs2.version}</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
