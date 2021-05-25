@@ -42,7 +42,7 @@
     <dependency>
       <groupId>org.eclipse.rap</groupId>
       <artifactId>org.eclipse.rap.rwt</artifactId>
-      <version>${rap.version}</version>
+      <version>${rap.version}-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
