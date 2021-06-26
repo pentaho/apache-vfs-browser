@@ -49,7 +49,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.di.core.Const;
 import org.pentaho.vfs.messages.Messages;
 
 import java.io.File;
@@ -242,17 +241,15 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
           }
         }
 
-        /*
-         * Copied from kettle-core to break the dependency on the patched kettle-core
-         * so that this project can be built using the official kettle-core
-         */
         private String getKettleUserDataDirectory() {
-          String path = Const.getKettleDirectory();
+          String fileSeparator = System.getProperty( "file.separator" );
+          String user_home = System.getProperty( "user.home" );
+          String path = user_home + fileSeparator + ".kettle";
           String user = getUser();
           if ( user != null ) {
-            path += Const.FILE_SEPARATOR + "users" + Const.FILE_SEPARATOR + user;
+            path += fileSeparator + "users" + fileSeparator + user;
           }
-          return path + Const.FILE_SEPARATOR + "data";
+          return path + fileSeparator + "data";
         }
 
         private String getUser() {
