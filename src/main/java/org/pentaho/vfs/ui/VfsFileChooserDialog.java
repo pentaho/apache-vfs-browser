@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 - 2018 Hitachi Vantara.  All rights reserved.
+* Copyright 2002 - 2021 Hitachi Vantara.  All rights reserved.
 * 
 * This software was developed by Hitachi Vantara and is provided under the terms
 * of the Mozilla Public License, Version 1.1, or any later version. You may not use
@@ -54,6 +54,7 @@ import org.pentaho.vfs.messages.Messages;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -226,37 +227,18 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       CustomVfsUiPanel localPanel = new CustomVfsUiPanel( FILE_SCHEME, "Local", this, SWT.None ) {
         public void activate() {
           try {
-            File startFile = new File( getKettleUserDataDirectory() );
+            File startFile = new File( ConstProxy.getKettleUserDataDirectory() );
             if ( startFile == null || !startFile.exists() ) {
               startFile = File.listRoots()[ 0 ];
             }
             FileObject dot = resolver.resolveFile( startFile.toURI().toURL().toExternalForm() );
-            rootFile = resolver.resolveFile( getKettleUserDataDirectory() );
+            rootFile = resolver.resolveFile( ConstProxy.getKettleUserDataDirectory() );
             selectedFile = rootFile;
             setInitialFile( selectedFile );
             openFileCombo.setText( selectedFile.getName().getURI() );
             resolveVfsBrowser();
           } catch ( Throwable t ) {
             t.printStackTrace();
-          }
-        }
-
-        private String getKettleUserDataDirectory() {
-          String fileSeparator = System.getProperty( "file.separator" );
-          String user_home = System.getProperty( "user.home" );
-          String path = user_home + fileSeparator + ".kettle";
-          String user = getUser();
-          if ( user != null ) {
-            path += fileSeparator + "users" + fileSeparator + user;
-          }
-          return path + fileSeparator + "data";
-        }
-
-        private String getUser() {
-          try {
-            return RWT.getRequest().getRemoteUser();
-          } catch ( Exception e ) { // when accessed from background threads (e.g., when the webSpoon server is starting)
-            return null;
           }
         }
       };
@@ -785,7 +767,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
             // .getFolderURL(openFileCombo.getText()));
             //            FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile
             // (getSelectedFile().getName().getURI());
-            FileObject newRoot = currentPanel.resolveFile( openFileCombo.getText() );
+            FileObject newRoot = getValidNewRoot( currentPanel.resolveFile( openFileCombo.getText() ) );
 
             vfsBrowser.resetVfsRoot( newRoot );
           } catch ( FileSystemException e ) {
@@ -876,7 +858,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
         // resolve the selected folder (without displaying access/secret keys in plain text)
         //        FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(folderURL
         // .getFolderURL(openFileCombo.getText()));
-        FileObject newRoot = currentPanel.resolveFile( openFileCombo.getText() );
+        FileObject newRoot = getValidNewRoot( currentPanel.resolveFile( openFileCombo.getText() ) );
         vfsBrowser.resetVfsRoot( newRoot );
       } catch ( FileSystemException e ) {
         e.printStackTrace();
@@ -914,7 +896,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
   public void mouseDown( MouseEvent se ) {
     if ( se.widget == folderUpButton ) {
       try {
-        FileObject newRoot = vfsBrowser.getSelectedFileObject().getParent();
+        FileObject newRoot = getValidNewRoot( vfsBrowser.getSelectedFileObject().getParent() );
         if ( newRoot != null ) {
           vfsBrowser.resetVfsRoot( newRoot );
           vfsBrowser.setSelectedFileObject( newRoot );
@@ -1123,7 +1105,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       //      newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(getSelectedFile().getName()
       // .getURI());
       if ( currentPanel != null ) {
-        newRoot = currentPanel.resolveFile( getSelectedFile().getName().getURI() );
+        newRoot = getValidNewRoot( currentPanel.resolveFile( getSelectedFile().getName().getURI() ) );
       }
     } catch ( FileSystemException e ) {
       displayMessageBox( SWT.OK, Messages.getString( "VfsFileChooserDialog.error" ), e.getMessage() );
@@ -1228,5 +1210,30 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
 
   public CustomVfsUiPanel getCurrentPanel() {
     return currentPanel;
+  }
+
+  private FileObject getValidNewRoot( FileObject newRoot ) {
+    try {
+      FileObject userDataDir = getUserDataDirFileObject();
+      URI newRootURI = new URI( newRoot.getName().getURI() );
+      URI userDataDirURI = new URI( userDataDir.getName().getURI() );
+      if ( userDataDirURI.relativize( newRootURI ).isAbsolute() ) {
+        newRoot = userDataDir;
+      }
+    } finally {
+      return newRoot;
+    }
+  }
+
+  private FileObject getUserDataDirFileObject() {
+    try {
+      File startFile = new File( ConstProxy.getKettleUserDataDirectory() );
+      if ( startFile == null || !startFile.exists() ) {
+        startFile = File.listRoots()[0];
+      }
+      return resolver.resolveFile( startFile.toURI().toURL().toExternalForm() );
+    } catch ( MalformedURLException | FileSystemException e ) {
+      return null;
+    }
   }
 }

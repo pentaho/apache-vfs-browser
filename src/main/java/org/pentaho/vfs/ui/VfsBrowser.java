@@ -582,7 +582,7 @@ public class VfsBrowser extends Composite {
           FileObject fileObj = children[ i ];
           try {
             FileType fileType = fileObj.getType();
-            if ( fileType.hasChildren() || fileType.equals( FileType.FOLDER ) ) {
+            if ( ( fileType.hasChildren() || fileType.equals( FileType.FOLDER ) ) && !fileObj.isHidden() ) {
               TreeItem childTreeItem = new TreeItem( myItem, SWT.NONE );
               populateTreeItemText( childTreeItem, fileObj );
               childTreeItem.setImage( getFileImage( tree.getDisplay() ) );
@@ -619,6 +619,10 @@ public class VfsBrowser extends Composite {
   }
 
   public boolean isAcceptedByFilter( FileName fileName ) {
+    // Don't show hidden files
+    if ( fileName.getBaseName().startsWith( "." ) ) {
+      return false;
+    }
     if ( fileFilter != null && !"".equals( fileFilter ) ) {
       StringTokenizer st = new StringTokenizer( fileFilter, ";" );
       while ( st.hasMoreTokens() ) {
