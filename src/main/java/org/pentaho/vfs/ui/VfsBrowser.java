@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 - 2019 Hitachi Vantara.  All rights reserved.
+ * Copyright 2002 - 2022 Hitachi Vantara.  All rights reserved.
  *
  * This software was developed by Hitachi Vantara and is provided under the terms
  * of the Mozilla Public License, Version 1.1, or any later version. You may not use
@@ -294,7 +294,8 @@ public class VfsBrowser extends Composite {
       if ( text == null ) {
         text = defaultText;
       }
-      TextInputDialog textDialog =
+      TextInputDialog textDialog = ConstProxy.isRunningOnWebspoonMode() ?
+        new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 120 ) :
         new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 100 );
       text = textDialog.open();
       if ( text != null && !"".equals( text ) ) { //$NON-NLS-1$
@@ -582,7 +583,7 @@ public class VfsBrowser extends Composite {
           FileObject fileObj = children[ i ];
           try {
             FileType fileType = fileObj.getType();
-            if ( fileType.hasChildren() || fileType.equals( FileType.FOLDER ) ) {
+            if ( ( fileType.hasChildren() || fileType.equals( FileType.FOLDER ) ) && !fileObj.isHidden() ) {
               TreeItem childTreeItem = new TreeItem( myItem, SWT.NONE );
               populateTreeItemText( childTreeItem, fileObj );
               childTreeItem.setImage( getFileImage( tree.getDisplay() ) );
@@ -619,6 +620,10 @@ public class VfsBrowser extends Composite {
   }
 
   public boolean isAcceptedByFilter( FileName fileName ) {
+    // Don't show hidden files
+    if ( fileName.getBaseName().startsWith( "." ) ) {
+      return false;
+    }
     if ( fileFilter != null && !"".equals( fileFilter ) ) {
       StringTokenizer st = new StringTokenizer( fileFilter, ";" );
       while ( st.hasMoreTokens() ) {
