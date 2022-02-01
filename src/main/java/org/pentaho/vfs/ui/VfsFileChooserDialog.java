@@ -230,7 +230,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
               ? new File( ConstProxy.getKettleUserDataDirectory() )
               : new File( System.getProperty( "user.home" ) );
 
-            if ( startFile == null || !startFile.exists() ) {
+            if ( !startFile.exists() ) {
               startFile = File.listRoots()[ 0 ];
             }
             FileObject dot = resolver.resolveFile( startFile.toURI().toURL().toExternalForm() );
