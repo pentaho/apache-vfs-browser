@@ -294,9 +294,9 @@ public class VfsBrowser extends Composite {
       if ( text == null ) {
         text = defaultText;
       }
-      TextInputDialog textDialog = ConstProxy.isRunningOnWebspoonMode() ?
-        new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 120 ) :
-        new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 100 );
+      TextInputDialog textDialog = ConstProxy.isRunningOnWebspoonMode()
+        ? new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 120 )
+        : new TextInputDialog( Messages.getString( "VfsBrowser.enterNewFilename" ), text, 500, 100 );
       text = textDialog.open();
       if ( text != null && !"".equals( text ) ) { //$NON-NLS-1$
         try {

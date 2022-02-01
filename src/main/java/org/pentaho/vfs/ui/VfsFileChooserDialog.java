@@ -1219,13 +1219,13 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       FileObject userDataDir = getUserDataDirFileObject();
       URI newRootURI = new URI( newRoot.getName().getURI() );
       URI userDataDirURI = null;
-      if (userDataDir != null) {
+      if ( userDataDir != null ) {
         userDataDirURI = new URI( userDataDir.getName().getURI() );
       }
       if ( userDataDirURI.relativize( newRootURI ).isAbsolute() ) {
         newRoot = userDataDir;
       }
-    } catch( Exception ex ) {
+    } catch ( Exception ex ) {
       return newRoot;
     }
     return newRoot;
