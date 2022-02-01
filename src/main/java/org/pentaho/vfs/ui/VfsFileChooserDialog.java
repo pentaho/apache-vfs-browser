@@ -1222,7 +1222,7 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       if ( userDataDir != null ) {
         userDataDirURI = new URI( userDataDir.getName().getURI() );
       }
-      if ( userDataDirURI.relativize( newRootURI ).isAbsolute() ) {
+      if ( userDataDirURI != null && userDataDirURI.relativize( newRootURI ).isAbsolute() ) {
         newRoot = userDataDir;
       }
     } catch ( Exception ex ) {
