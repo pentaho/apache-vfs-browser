@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 - 2018 Hitachi Vantara.  All rights reserved.
+* Copyright 2002 - 2022 Hitachi Vantara.  All rights reserved.
 * 
 * This software was developed by Hitachi Vantara and is provided under the terms
 * of the Mozilla Public License, Version 1.1, or any later version. You may not use
@@ -53,6 +53,7 @@ import org.pentaho.vfs.messages.Messages;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -225,12 +226,18 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       CustomVfsUiPanel localPanel = new CustomVfsUiPanel( FILE_SCHEME, "Local", this, SWT.None ) {
         public void activate() {
           try {
-            File startFile = new File( System.getProperty( "user.home" ) );
-            if ( startFile == null || !startFile.exists() ) {
+            File startFile = ConstProxy.isRunningOnWebspoonMode()
+              ? new File( ConstProxy.getKettleUserDataDirectory() )
+              : new File( System.getProperty( "user.home" ) );
+
+            if ( !startFile.exists() ) {
               startFile = File.listRoots()[ 0 ];
             }
             FileObject dot = resolver.resolveFile( startFile.toURI().toURL().toExternalForm() );
-            rootFile = dot.getFileSystem().getRoot();
+            rootFile = ConstProxy.isRunningOnWebspoonMode()
+              ? resolver.resolveFile( ConstProxy.getKettleUserDataDirectory() )
+              : dot.getFileSystem().getRoot();
+
             selectedFile = rootFile;
             setInitialFile( selectedFile );
             openFileCombo.setText( selectedFile.getName().getURI() );
@@ -760,12 +767,9 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
       public void keyReleased( KeyEvent event ) {
         if ( event.keyCode == SWT.CR || event.keyCode == SWT.KEYPAD_CR ) {
           try {
-            // resolve the selected folder (without displaying access/secret keys in plain text)
-            //            FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(folderURL
-            // .getFolderURL(openFileCombo.getText()));
-            //            FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile
-            // (getSelectedFile().getName().getURI());
-            FileObject newRoot = currentPanel.resolveFile( openFileCombo.getText() );
+            FileObject newRoot = ConstProxy.isRunningOnWebspoonMode()
+              ? getValidNewRoot( currentPanel.resolveFile( openFileCombo.getText() ) )
+              : currentPanel.resolveFile( openFileCombo.getText() );
 
             vfsBrowser.resetVfsRoot( newRoot );
           } catch ( FileSystemException e ) {
@@ -849,14 +853,11 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
 
   public void widgetSelected( SelectionEvent se ) {
     if ( se.widget == openFileCombo ) {
-      // String filePath = parentFoldersCombo.getItem(parentFoldersCombo.getSelectionIndex());
-      // vfsBrowser.selectTreeItemByName(filePath, true);
-
       try {
-        // resolve the selected folder (without displaying access/secret keys in plain text)
-        //        FileObject newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(folderURL
-        // .getFolderURL(openFileCombo.getText()));
-        FileObject newRoot = currentPanel.resolveFile( openFileCombo.getText() );
+        FileObject newRoot = ConstProxy.isRunningOnWebspoonMode()
+          ? getValidNewRoot( currentPanel.resolveFile( openFileCombo.getText() ) )
+          : currentPanel.resolveFile( openFileCombo.getText() );
+
         vfsBrowser.resetVfsRoot( newRoot );
       } catch ( FileSystemException e ) {
         e.printStackTrace();
@@ -895,6 +896,10 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
     if ( se.widget == folderUpButton ) {
       try {
         FileObject newRoot = vfsBrowser.getSelectedFileObject().getParent();
+        if ( ConstProxy.isRunningOnWebspoonMode() ) {
+          newRoot = getValidNewRoot( currentPanel.resolveFile( newRoot.toString() ) );
+        }
+
         if ( newRoot != null ) {
           vfsBrowser.resetVfsRoot( newRoot );
           vfsBrowser.setSelectedFileObject( newRoot );
@@ -1100,15 +1105,14 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
   public void resolveVfsBrowser() {
     FileObject newRoot = null;
     try {
-      //      newRoot = rootFile.getFileSystem().getFileSystemManager().resolveFile(getSelectedFile().getName()
-      // .getURI());
       if ( currentPanel != null ) {
-        newRoot = currentPanel.resolveFile( getSelectedFile().getName().getURI() );
+        newRoot = ConstProxy.isRunningOnWebspoonMode()
+          ? getValidNewRoot( currentPanel.resolveFile( getSelectedFile().getName().getURI() ) )
+          : currentPanel.resolveFile( getSelectedFile().getName().getURI() );
       }
     } catch ( FileSystemException e ) {
       displayMessageBox( SWT.OK, Messages.getString( "VfsFileChooserDialog.error" ), e.getMessage() );
     }
-    //if (newRoot != null && !newRoot.equals(vfsBrowser.getRootFileObject())) {
     if ( newRoot != null ) {
       vfsBrowser.resetVfsRoot( newRoot );
     }
@@ -1208,5 +1212,31 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
 
   public CustomVfsUiPanel getCurrentPanel() {
     return currentPanel;
+  }
+
+  private FileObject getValidNewRoot( FileObject newRoot ) {
+    try {
+      FileObject userDataDir = getUserDataDirFileObject();
+      URI newRootURI = new URI( newRoot.getName().getURI() );
+      URI userDataDirURI = null;
+      if ( userDataDir != null ) {
+        userDataDirURI = new URI( userDataDir.getName().getURI() );
+      }
+      if ( userDataDirURI != null && userDataDirURI.relativize( newRootURI ).isAbsolute() ) {
+        newRoot = userDataDir;
+      }
+    } catch ( Exception ex ) {
+      return newRoot;
+    }
+    return newRoot;
+  }
+
+  private FileObject getUserDataDirFileObject() {
+    try {
+      File startFile = new File( ConstProxy.getKettleUserDataDirectory() );
+      return resolver.resolveFile( startFile.toURI().toURL().toExternalForm() );
+    } catch ( MalformedURLException | FileSystemException e ) {
+      return null;
+    }
   }
 }
