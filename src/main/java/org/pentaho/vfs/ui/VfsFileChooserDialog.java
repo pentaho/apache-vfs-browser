@@ -709,9 +709,12 @@ public class VfsFileChooserDialog implements SelectionListener, MouseListener, V
     if ( fileFilters != null && fileFilters.length > 0 ) {
       defaultFilter = fileFilters[ 0 ];
     }
+    boolean showFoldersOnly = false;
+    if ( !ConstProxy.isRunningOnWebspoonMode() ) {
+      showFoldersOnly = fileDialogMode == VFS_DIALOG_SAVEAS ? true : false;
+    }
     vfsBrowser =
-      new VfsBrowser( dialog, SWT.NONE, rootFile, defaultFilter, fileDialogMode == VFS_DIALOG_SAVEAS ? true : false,
-        false );
+      new VfsBrowser( dialog, SWT.NONE, rootFile, defaultFilter, showFoldersOnly, false );
     // vfsBrowser.selectTreeItemByName(rootFile.getName().getURI(), true);
     vfsBrowser.addVfsBrowserListener( this );
     GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, true );
