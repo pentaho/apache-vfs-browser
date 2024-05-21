@@ -1,5 +1,5 @@
 /*
-* Copyright 2002 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2002 - 2024 Hitachi Vantara.  All rights reserved.
 *
 * This software was developed by Hitachi Vantara and is provided under the terms
 * of the Mozilla Public License, Version 1.1, or any later version. You may not use
@@ -13,18 +13,19 @@
 
 package org.pentaho.vfs.ui;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.junit.Assert.assertEquals;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.vfs2.FileSystemManager;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.mock;
+
 /**
  * @author Andrey Khayrutdinov
  */
