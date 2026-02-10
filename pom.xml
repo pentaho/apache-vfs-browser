@@ -24,7 +24,6 @@
   </scm>
   <properties>
     <org.eclipse.swt.version>4.6</org.eclipse.swt.version>
-    <mail.version>1.6.1</mail.version>
     <mockito.version>5.10.0</mockito.version>
     <oro.version>2.0.8</oro.version>
     <commons-collections.version>3.2.2</commons-collections.version>
@@ -57,12 +56,6 @@
           <groupId>*</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
-      <version>${mail.version}</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>oro</groupId>
